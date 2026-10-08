@@ -4,7 +4,7 @@ import { emit } from "./bus";
 import { Cron } from "croner";
 import { normalizeLook } from "@/lib/look";
 import type {
-  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, Routine, Rule, RuleDecision, Skill,
+  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -380,6 +380,75 @@ export function addRule(input: { dotId: string | null; action: string; decision:
 export function deleteRule(ruleId: string) {
   db().prepare("DELETE FROM rules WHERE id = ?").run(ruleId);
   emit({ type: "rule_deleted", id: ruleId });
+}
+
+// ---------- SparkForge product blueprints ----------
+
+const toBlueprint = (r: Row): ProductBlueprint => ({
+  id: r.id as string,
+  opportunityId: r.opportunity_id as string,
+  dotId: r.dot_id as string,
+  name: r.name as string,
+  promise: r.promise as string,
+  format: r.format as string,
+  contents: JSON.parse((r.contents as string) || "[]"),
+  variants: JSON.parse((r.variants as string) || "[]"),
+  price: r.price as string,
+  productionRequirements: JSON.parse((r.production_requirements as string) || "[]"),
+  creativeBrief: r.creative_brief as string,
+  listingAngle: r.listing_angle as string,
+  status: r.status as ProductBlueprint["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createProductBlueprint(input: Omit<ProductBlueprint, "id" | "createdAt" | "updatedAt">): ProductBlueprint {
+  const blueprintId = id("prod");
+  const timestamp = now();
+  db().prepare(`INSERT INTO product_blueprints
+    (id, opportunity_id, dot_id, name, promise, format, contents, variants, price, production_requirements, creative_brief, listing_angle, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      blueprintId, input.opportunityId, input.dotId, input.name, input.promise, input.format,
+      JSON.stringify(input.contents), JSON.stringify(input.variants), input.price, JSON.stringify(input.productionRequirements),
+      input.creativeBrief, input.listingAngle, input.status, timestamp, timestamp,
+    );
+  return getProductBlueprint(blueprintId)!;
+}
+
+export function getProductBlueprint(blueprintId: string): ProductBlueprint | null {
+  const r = db().prepare("SELECT * FROM product_blueprints WHERE id = ?").get(blueprintId);
+  return r ? toBlueprint(r as Row) : null;
+}
+
+export function listProductBlueprints(opportunityId?: string): ProductBlueprint[] {
+  const rows = opportunityId
+    ? db().prepare("SELECT * FROM product_blueprints WHERE opportunity_id = ? ORDER BY updated_at DESC").all(opportunityId)
+    : db().prepare("SELECT * FROM product_blueprints ORDER BY updated_at DESC").all();
+  return rows.map((r) => toBlueprint(r as Row));
+}
+
+export function updateProductBlueprint(blueprintId: string, patch: Partial<Omit<ProductBlueprint, "id" | "opportunityId" | "dotId" | "createdAt" | "updatedAt">>) {
+  const jsonFields: Record<string, string> = {
+    contents: "contents", variants: "variants", productionRequirements: "production_requirements",
+  };
+  const cols: string[] = [];
+  const vals: (string | number)[] = [];
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      name: "name", promise: "promise", format: "format", price: "price",
+      creativeBrief: "creative_brief", listingAngle: "listing_angle", status: "status",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" ? JSON.stringify(value) : (value as string | number));
+  }
+  if (!cols.length) return getProductBlueprint(blueprintId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE product_blueprints SET ${cols.join(", ")} WHERE id = ?`).run(...vals, blueprintId);
+  return getProductBlueprint(blueprintId);
 }
 
 // ---------- SparkForge opportunity briefs ----------
