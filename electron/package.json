@@ -1,8 +1,8 @@
 {
-  "name": "open-dot",
-  "productName": "Open Dot",
+  "name": "sparkforge-desktop",
+  "productName": "SparkForge",
   "version": "0.1.0",
-  "description": "Open-source personal AI agents that work on their own",
+  "description": "AI-powered Creator OS with an autonomous specialist workforce",
   "main": "main.mjs",
   "author": "Composio"
 }
