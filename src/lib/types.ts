@@ -158,6 +158,7 @@ export type Snapshot = {
   apps: ToolkitState[];
   channels: Channel[];
   conversations: Conversation[];
+  opportunities: OpportunityBrief[];
 };
 
 /** A Composio app the user can connect (Gmail, Slack…). */
