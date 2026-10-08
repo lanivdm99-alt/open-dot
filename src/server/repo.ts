@@ -101,7 +101,7 @@ export function setActivity(dotId: string, label: string | null) {
 
 export function deleteDot(dotId: string) {
   const d = db();
-  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
+  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations", "opportunity_briefs", "product_blueprints"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
   d.prepare("DELETE FROM dots WHERE id = ?").run(dotId);
   emit({ type: "dot_deleted", id: dotId });
 }
@@ -413,7 +413,9 @@ export function createProductBlueprint(input: Omit<ProductBlueprint, "id" | "cre
       JSON.stringify(input.contents), JSON.stringify(input.variants), input.price, JSON.stringify(input.productionRequirements),
       input.creativeBrief, input.listingAngle, input.status, timestamp, timestamp,
     );
-  return getProductBlueprint(blueprintId)!;
+  const blueprint = getProductBlueprint(blueprintId)!;
+  emit({ type: "product_blueprint", data: blueprint });
+  return blueprint;
 }
 
 export function getProductBlueprint(blueprintId: string): ProductBlueprint | null {
@@ -448,7 +450,9 @@ export function updateProductBlueprint(blueprintId: string, patch: Partial<Omit<
   cols.push("updated_at = ?");
   vals.push(now());
   db().prepare(`UPDATE product_blueprints SET ${cols.join(", ")} WHERE id = ?`).run(...vals, blueprintId);
-  return getProductBlueprint(blueprintId);
+  const blueprint = getProductBlueprint(blueprintId);
+  if (blueprint) emit({ type: "product_blueprint", data: blueprint });
+  return blueprint;
 }
 
 // ---------- SparkForge opportunity briefs ----------
@@ -485,7 +489,9 @@ export function createOpportunityBrief(input: Omit<OpportunityBrief, "id" | "cre
       JSON.stringify(input.gaps), input.pricing, input.executionDifficulty, input.score, input.recommendation,
       JSON.stringify(input.sources), input.status, timestamp, timestamp,
     );
-  return getOpportunityBrief(opportunityId)!;
+  const brief = getOpportunityBrief(opportunityId)!;
+  emit({ type: "opportunity", data: brief });
+  return brief;
 }
 
 export function getOpportunityBrief(opportunityId: string): OpportunityBrief | null {
