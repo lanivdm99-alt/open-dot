@@ -36,6 +36,13 @@ const FORGE_MISSION_RULES = [
   "After saving the blueprint, hand the blueprint id and opportunity context to Canvas for creative production planning and Listing for marketplace copy. External publishing remains approval-gated.",
 ];
 
+const BRAND_SKILL = [
+  "Brand System Builder",
+  "Create a coherent, reusable brand system for a creator business.",
+  "Define positioning, audience, voice, color roles, typography, imagery direction and explicit do/don't rules.",
+  "1. Start from the target buyer and product category. 2. Make the positioning specific rather than generic. 3. Choose a restrained palette with semantic roles. 4. Choose readable typography. 5. Define image and mockup direction. 6. Write voice examples and avoid-list. 7. Save the canonical system with save_brand_profile. 8. Keep the system reusable across product, listing and growth assets."
+];
+
 const LISTING_SKILL = [
   "Marketplace Listing Pack",
   "Create a complete, truthful listing draft from a product blueprint.",
@@ -73,6 +80,7 @@ export function ensureSparkForgeAgents() {
 
   repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
   repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3] + "\n\n" + FORGE_MISSION_RULES.join("\n"));
+  repo.upsertSkill(dots.creative, BRAND_SKILL[0], BRAND_SKILL[1], BRAND_SKILL[2] + "\n\n" + BRAND_SKILL[3]);
   repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3] + "\n\nWhen Forge gives you a product blueprint id, inspect that blueprint before drafting. Use save_listing_pack once the listing is complete.");
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
