@@ -21,6 +21,20 @@ const SCOUT_SKILL = [
   "1. State the exact niche/query. 2. Search current marketplace/web evidence. 3. Capture representative competing offers and observable pricing. 4. Identify repeated buyer language and unmet needs. 5. Separate observed facts from inference. 6. Score demand, competition, monetization and execution difficulty. 7. Recommend one product and explain why it wins. 8. Include sources and timestamps where available. Never fabricate sales, search volume or ranking data."
 ];
 
+const FORGE_SKILL = [
+  "Opportunity-to-Product Blueprint",
+  "Turn a validated Scout brief into a production-ready digital product.",
+  "Translate evidence into one focused product with a clear promise, contents, variants, pricing hypothesis and launch checklist.",
+  "1. Restate the buyer and problem. 2. Use Scout evidence rather than inventing demand. 3. Define the minimum sellable product. 4. Add only variants that improve the offer. 5. Specify file formats, dimensions and production requirements. 6. Set a test price and explain it. 7. Define Creative and Listing handoffs. 8. Flag assumptions that need validation."
+];
+
+const LISTING_SKILL = [
+  "Marketplace Listing Pack",
+  "Create a complete, truthful listing draft from a product blueprint.",
+  "Generate marketplace-ready copy and an asset checklist without unsupported claims.",
+  "1. Write a clear buyer-first title. 2. Draft the description around outcomes and contents. 3. Produce keyword/tag candidates from observed language. 4. Add FAQ and usage notes. 5. Create an image sequence that demonstrates the product. 6. Include licensing/AI disclosure notes when relevant. 7. Mark every claim that requires verification. 8. Leave publishing behind an approval gate."
+];
+
 export function ensureSparkForgeAgents() {
   const existing = repo.listDots();
   const hasSparkForge = existing.some((dot) => SPARKFORGE_AGENT_PRESETS.some((preset) => dot.name.toLowerCase() === preset.name.toLowerCase()));
@@ -45,6 +59,8 @@ export function ensureSparkForgeAgents() {
   }
 
   repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
+  repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3]);
+  repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3]);
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
   if (!repo.listChannels().some((c) => c.name.toLowerCase() === "sparkforge hq")) {
