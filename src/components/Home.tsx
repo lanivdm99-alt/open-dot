@@ -18,6 +18,8 @@ export default function Home() {
   const messages = useStore((s) => s.messages);
   const opportunities = useStore((s) => s.opportunities);
   const productBlueprints = useStore((s) => s.productBlueprints);
+  const listingPacks = useStore((s) => s.listingPacks);
+  const brandProfiles = useStore((s) => s.brandProfiles);
   const [picked, setPicked] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
@@ -180,6 +182,45 @@ export default function Home() {
                   </div>
                   <div className="mt-3 text-body-sm text-foreground/55">{product.format} · {product.price}</div>
                 </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {brandProfiles.length > 0 && (
+          <section className="mt-6">
+            <div className="surface overflow-hidden p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="eyebrow text-brand-readable">Brand system</div>
+                  <h2 className="mt-1 text-h2">{brandProfiles[0].name}</h2>
+                  <p className="mt-1 text-body-sm text-foreground/55">{brandProfiles[0].tagline}</p>
+                </div>
+                <span className="sparkforge-glow rounded-full bg-brand/10 px-2.5 py-1 font-mono text-[10px] tracking-wider text-brand-readable uppercase">{brandProfiles[0].status}</span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {brandProfiles[0].colors.slice(0, 6).map((color) => (
+                  <span key={color.hex} title={`${color.name} · ${color.hex}`} className="size-7 rounded-full border border-black/10" style={{ backgroundColor: color.hex }} />
+                ))}
+                <span className="ml-1 rounded-full border border-black/10 px-2.5 py-1 font-mono text-[10px] tracking-wider text-foreground/45 uppercase">{brandProfiles[0].voice.slice(0, 3).join(" · ")}</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {listingPacks.length > 0 && (
+          <section className="mt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="eyebrow">Listing pipeline · {listingPacks.length}</h2>
+              <span className="font-mono text-[10px] tracking-wider text-foreground/40 uppercase">Approval required to publish</span>
+            </div>
+            <div className="surface p-4">
+              {listingPacks.slice(0, 3).map((listing) => (
+                <div key={listing.id} className="flex items-center gap-3 border-b border-black/[0.06] py-3 last:border-0 last:pb-0 first:pt-0">
+                  <span className="rounded-md bg-brand/10 px-2 py-1 font-mono text-[10px] tracking-wider text-brand-readable uppercase">{listing.platform}</span>
+                  <span className="min-w-0 flex-1 truncate text-[14px]">{listing.title}</span>
+                  <span className="font-mono text-[10px] text-foreground/40 uppercase">{listing.status}</span>
+                </div>
               ))}
             </div>
           </section>
