@@ -44,5 +44,6 @@ export function snapshot(): Snapshot {
     apps: apps(),
     channels: repo.listChannels(),
     conversations: repo.listConversations(),
+    opportunities: repo.listOpportunityBriefs(),
   };
 }
