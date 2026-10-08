@@ -71,6 +71,10 @@ export function ensureSparkForgeAgents() {
     const current = byName.get(preset.name.toLowerCase());
     if (current) {
       dots[preset.key] = current.id;
+      const desiredLook = SPARKFORGE_FLUFFY_LOOKS[preset.key] ?? DEFAULT_LOOK;
+      if (JSON.stringify(current.look) !== JSON.stringify(desiredLook)) {
+        repo.updateDot(current.id, { look: desiredLook });
+      }
       continue;
     }
     const dot = repo.createDot({
