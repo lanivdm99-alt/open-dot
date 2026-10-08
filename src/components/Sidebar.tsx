@@ -15,11 +15,11 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2">
       <span className="flex -space-x-1">
-        <span className="size-3 rounded-full bg-foreground ring-2 ring-card" />
-        <span className="size-3 rounded-full bg-brand ring-2 ring-card" />
-        <span className="size-3 rounded-full bg-highlight ring-2 ring-card" />
+        <span className="size-3.5 rounded-full bg-brand ring-2 ring-card" />
+        <span className="size-3.5 rounded-full bg-highlight ring-2 ring-card" />
+        <span className="size-3.5 rounded-full bg-pink-400 ring-2 ring-card" />
       </span>
-      <span className="text-[15px] font-medium tracking-tight">open dot</span>
+      <span className="text-[15px] font-medium tracking-tight">SparkForge</span>
     </span>
   );
 }
