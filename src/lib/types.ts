@@ -111,6 +111,24 @@ export type OpportunityBrief = {
   createdAt: number;
   updatedAt: number;
 };
+
+export type ProductBlueprint = {
+  id: string;
+  opportunityId: string;
+  dotId: string;
+  name: string;
+  promise: string;
+  format: string;
+  contents: string[];
+  variants: string[];
+  price: string;
+  productionRequirements: string[];
+  creativeBrief: string;
+  listingAngle: string;
+  status: "draft" | "ready" | "creating" | "launched";
+  createdAt: number;
+  updatedAt: number;
+};
 /** A Composio trigger: when something happens in one of the user's apps, a dot runs an instruction. */
 // Picking a trigger: apps connected for triggers, and the events each app offers.
 export type TriggerApp = { slug: string; name: string; connected: boolean };
@@ -159,6 +177,7 @@ export type Snapshot = {
   channels: Channel[];
   conversations: Conversation[];
   opportunities: OpportunityBrief[];
+  productBlueprints: ProductBlueprint[];
 };
 
 /** A Composio app the user can connect (Gmail, Slack…). */
