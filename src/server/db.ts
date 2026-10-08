@@ -48,6 +48,14 @@ CREATE TABLE IF NOT EXISTS opportunity_briefs (
   created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS opportunity_briefs_dot ON opportunity_briefs(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS product_blueprints (
+  id TEXT PRIMARY KEY, opportunity_id TEXT NOT NULL, dot_id TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
+  promise TEXT NOT NULL DEFAULT '', format TEXT NOT NULL DEFAULT '', contents TEXT NOT NULL DEFAULT '[]',
+  variants TEXT NOT NULL DEFAULT '[]', price TEXT NOT NULL DEFAULT '', production_requirements TEXT NOT NULL DEFAULT '[]',
+  creative_brief TEXT NOT NULL DEFAULT '', listing_angle TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS product_blueprints_opportunity ON product_blueprints(opportunity_id, updated_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;
