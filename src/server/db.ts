@@ -64,6 +64,14 @@ CREATE TABLE IF NOT EXISTS listing_packs (
   created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS listing_packs_product ON listing_packs(product_blueprint_id, updated_at);
+CREATE TABLE IF NOT EXISTS brand_profiles (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', tagline TEXT NOT NULL DEFAULT '',
+  audience TEXT NOT NULL DEFAULT '', positioning TEXT NOT NULL DEFAULT '', voice TEXT NOT NULL DEFAULT '[]',
+  colors TEXT NOT NULL DEFAULT '[]', fonts TEXT NOT NULL DEFAULT '{}', visual_direction TEXT NOT NULL DEFAULT '',
+  imagery_rules TEXT NOT NULL DEFAULT '[]', avoid TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'draft',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS brand_profiles_dot ON brand_profiles(dot_id, updated_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;
