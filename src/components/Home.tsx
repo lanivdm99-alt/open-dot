@@ -63,7 +63,7 @@ export default function Home() {
         <section className="flex flex-col items-center pt-16 pb-10 text-center">
           {target && (
             <div className="dot-grid rounded-full">
-              <Dot3DLazy look={target.look} status={target.status} size={128} />
+              <Dot3DLazy look={target.look} name={target.name} status={target.status} size={128} />
             </div>
           )}
           <div className="eyebrow mt-5 text-brand-readable/80">Hand off a task</div>
@@ -95,7 +95,7 @@ export default function Home() {
                       onClick={() => setPicked(d.id)}
                       className={`flex h-7 items-center gap-1.5 rounded-md border pr-2.5 pl-1 text-[13px] transition-colors ${d.id === target?.id ? "border-foreground bg-foreground text-card" : "border-black/10 text-foreground/60 hover:border-black/20 hover:text-foreground"}`}
                     >
-                      <DotOrb look={d.look} status={d.status} size={18} />
+                      <DotOrb look={d.look} name={d.name} status={d.status} size={18} />
                       {d.name}
                     </button>
                   ))}
@@ -130,7 +130,7 @@ export default function Home() {
                 onClick={() => markRead(d.id)}
                 className="surface group flex items-start gap-3.5 p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
               >
-                <DotOrb look={d.look} status={d.status} size={40} />
+                <DotOrb look={d.look} name={d.name} status={d.status} size={40} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[15px] font-medium">{d.name}</span>
@@ -156,7 +156,7 @@ export default function Home() {
                 if (!d) return null;
                 return (
                   <Link key={m.id} href={`/dots/${d.id}`} onClick={() => markRead(d.id)} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-popover">
-                    <DotOrb look={d.look} status={d.status} size={24} />
+                    <DotOrb look={d.look} name={d.name} status={d.status} size={24} />
                     <span className="w-20 shrink-0 truncate text-[14px]">{d.name}</span>
                     {m.role === "card" && <span className="shrink-0 rounded-xs bg-warning/15 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-warning uppercase">Needs you</span>}
                     {m.title && <span className="shrink-0 rounded-xs bg-highlight px-1.5 py-0.5 font-mono text-[10px] tracking-wider uppercase">{m.title}</span>}
