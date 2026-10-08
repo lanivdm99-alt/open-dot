@@ -92,6 +92,24 @@ export type RuleDecision = "allow" | "ask" | "never";
 export type Rule = { id: string; dotId: string | null; action: string; decision: RuleDecision; createdAt: number };
 export type Memory = { id: string; dotId: string; text: string; createdAt: number };
 export type Skill = { id: string; dotId: string; name: string; description: string; body: string; createdAt: number };
+export type BrandProfile = {
+  id: string;
+  dotId: string;
+  name: string;
+  tagline: string;
+  audience: string;
+  positioning: string;
+  voice: string[];
+  colors: { name: string; hex: string; role: string }[];
+  fonts: { heading: string; body: string; accent?: string };
+  visualDirection: string;
+  imageryRules: string[];
+  avoid: string[];
+  status: "draft" | "ready";
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type OpportunityBrief = {
   id: string;
   dotId: string;
@@ -193,6 +211,7 @@ export type Snapshot = {
   channels: Channel[];
   conversations: Conversation[];
   opportunities: OpportunityBrief[];
+  brandProfiles: BrandProfile[];
   productBlueprints: ProductBlueprint[];
   listingPacks: ListingPack[];
 };
@@ -243,6 +262,7 @@ export type ServerEvent =
   | { type: "channel_deleted"; id: string }
   | { type: "conversation"; data: Conversation }
   | { type: "conversation_deleted"; id: string }
-  | { type: "opportunity"; data: OpportunityBrief };
+  | { type: "opportunity"; data: OpportunityBrief }
+  | { type: "brand_profile"; data: BrandProfile };
   | { type: "product_blueprint"; data: ProductBlueprint }
   | { type: "listing_pack"; data: ListingPack };
