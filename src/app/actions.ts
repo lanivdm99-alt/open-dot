@@ -48,9 +48,27 @@ export async function startSparkForgeOpportunity(query: string): Promise<string 
   const scout = repo.findDotByName("Scout");
   if (!scout) throw new Error("SparkForge Scout is not available.");
 
+  const opportunity = repo.createOpportunityBrief({
+    dotId: scout.id,
+    query: niche,
+    niche: niche,
+    targetBuyer: "",
+    demandSignals: [],
+    competitors: [],
+    buyerLanguage: [],
+    gaps: [],
+    pricing: "",
+    executionDifficulty: "",
+    score: 0,
+    recommendation: "",
+    sources: [],
+    status: "researching",
+  });
+
   const conv = repo.createConversation(scout.id);
   const mission = `SPARKFORGE OPPORTUNITY MISSION
 
+Opportunity ID: ${opportunity.id}
 Research target: ${niche}
 
 Run a current, evidence-first marketplace opportunity scan across Etsy, Gumroad and relevant web sources.
@@ -67,7 +85,7 @@ Deliverable contract:
 9. One concrete digital product/bundle recommendation.
 10. Sources and timestamps. Clearly label observations vs inference. Never invent sales, search volume, rankings or customer data.
 
-Then hand the completed opportunity brief to Forge using the message_dot tool. Tell Forge to turn the validated opportunity into a concrete product specification. Do not publish, purchase, or make external changes. Return the final opportunity brief in this conversation as well.`;
+When the research is complete, call save_opportunity_brief with Opportunity ID ${opportunity.id}. The saved brief is the source of truth for the next agents. Only after it is saved should you hand the completed opportunity brief to Forge using the message_dot tool. Tell Forge to turn the validated opportunity into a concrete product specification. Do not publish, purchase, or make external changes. Return the final opportunity brief in this conversation as well.`;
 
   runtime.sendMessage(scout.id, mission, [], conv.id);
   void autoTitle(conv.id, `Opportunity · ${niche}`);
