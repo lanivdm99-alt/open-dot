@@ -141,6 +141,8 @@ function apply(ev: ServerEvent) {
       return set({ conversations: without(state.conversations, ev.id), messages: state.messages.filter((m) => m.conversationId !== ev.id) });
     case "opportunity":
       return set({ opportunities: upsert(state.opportunities, ev.data) });
+    case "product_blueprint":
+      return set({ productBlueprints: upsert(state.productBlueprints, ev.data) });
     case "channel_deleted":
       return set({ channels: without(state.channels, ev.id), messages: state.messages.filter((m) => m.channelId !== ev.id) });
   }
