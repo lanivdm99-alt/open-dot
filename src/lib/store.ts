@@ -23,7 +23,7 @@ const EMPTY: State = {
   apps: [],
   channels: [],
   conversations: [],
-  opportunities: [],
+  opportunities: [], productBlueprints: [],
   loaded: false, connected: false, screens: {}, urls: {}, lastRead: {}, toasts: [],
 };
 
