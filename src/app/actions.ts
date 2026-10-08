@@ -92,6 +92,34 @@ When the research is complete, call save_opportunity_brief with Opportunity ID $
   return conv.id;
 }
 
+export async function startSparkForgeBrand(input: { name: string; audience: string; category: string }): Promise<string | null> {
+  const name = input.name.trim();
+  const audience = input.audience.trim();
+  const category = input.category.trim();
+  if (!name || !audience || !category) return null;
+
+  ensureSparkForgeAgents();
+  const canvas = repo.findDotByName("Canvas");
+  if (!canvas) throw new Error("SparkForge Canvas is not available.");
+
+  const conv = repo.createConversation(canvas.id);
+  const mission = `SPARKFORGE BRAND SYSTEM MISSION
+
+Brand name: ${name}
+Primary audience: ${audience}
+Category: ${category}
+
+Build the canonical brand system for this creator business. Define positioning, tagline, voice, color roles, typography, visual direction, imagery rules and a concise avoid-list. Make choices that are differentiated but usable across digital products, marketplace listings, social creative and landing pages.
+
+Do not copy another brand. Do not invent customer research. If evidence is needed, use current sources and distinguish observation from inference.
+
+When the system is coherent, call save_brand_profile exactly once. Do not publish anything externally. Return the completed brand system in this conversation.`;
+
+  runtime.sendMessage(canvas.id, mission, [], conv.id);
+  void autoTitle(conv.id, `Brand · ${name}`);
+  return conv.id;
+}
+
 export async function sendMessage(dotId: string, text: string, attachments: Attachment[] = [], conversationId?: string) {
   if (!text.trim() && !attachments.length) return;
   runtime.sendMessage(dotId, text.trim(), attachments, conversationId);
