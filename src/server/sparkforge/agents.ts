@@ -37,12 +37,16 @@ const LISTING_SKILL = [
 
 export function ensureSparkForgeAgents() {
   const existing = repo.listDots();
-  const hasSparkForge = existing.some((dot) => SPARKFORGE_AGENT_PRESETS.some((preset) => dot.name.toLowerCase() === preset.name.toLowerCase()));
-  if (hasSparkForge) return [];
-
+  const byName = new Map(existing.map((dot) => [dot.name.toLowerCase(), dot]));
   const created: string[] = [];
   const dots: Record<string, string> = {};
+
   for (const preset of SPARKFORGE_AGENT_PRESETS) {
+    const current = byName.get(preset.name.toLowerCase());
+    if (current) {
+      dots[preset.key] = current.id;
+      continue;
+    }
     const dot = repo.createDot({
       name: preset.name,
       purpose: preset.purpose,
@@ -50,6 +54,7 @@ export function ensureSparkForgeAgents() {
       look: existing[0]?.look ?? DEFAULT_LOOK,
     });
     dots[preset.key] = dot.id;
+    byName.set(preset.name.toLowerCase(), dot);
     repo.addMessage({
       dotId: dot.id,
       role: "dot",
@@ -63,7 +68,8 @@ export function ensureSparkForgeAgents() {
   repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3]);
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
-  if (!repo.listChannels().some((c) => c.name.toLowerCase() === "sparkforge hq")) {
+  const hq = repo.listChannels().find((c) => c.name.toLowerCase() === "sparkforge hq");
+  if (!hq) {
     repo.createChannel("SparkForge HQ", dots.operator, Object.values(dots));
   }
 
