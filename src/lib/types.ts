@@ -92,6 +92,25 @@ export type RuleDecision = "allow" | "ask" | "never";
 export type Rule = { id: string; dotId: string | null; action: string; decision: RuleDecision; createdAt: number };
 export type Memory = { id: string; dotId: string; text: string; createdAt: number };
 export type Skill = { id: string; dotId: string; name: string; description: string; body: string; createdAt: number };
+export type OpportunityBrief = {
+  id: string;
+  dotId: string;
+  query: string;
+  niche: string;
+  targetBuyer: string;
+  demandSignals: string[];
+  competitors: { name: string; price?: string; url?: string; notes: string }[];
+  buyerLanguage: string[];
+  gaps: string[];
+  pricing: string;
+  executionDifficulty: string;
+  score: number;
+  recommendation: string;
+  sources: { title: string; url: string; observedAt?: string }[];
+  status: "researching" | "validated" | "building" | "archived";
+  createdAt: number;
+  updatedAt: number;
+};
 /** A Composio trigger: when something happens in one of the user's apps, a dot runs an instruction. */
 // Picking a trigger: apps connected for triggers, and the events each app offers.
 export type TriggerApp = { slug: string; name: string; connected: boolean };
