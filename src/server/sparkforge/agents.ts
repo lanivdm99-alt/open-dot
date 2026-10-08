@@ -14,6 +14,17 @@ export const SPARKFORGE_AGENT_PRESETS = [
   { key: "computer", name: "Browser", purpose: "Execute approved browser and computer tasks for SparkForge.", instructions: "You are SparkForge execution specialist. Use your persistent browser/computer to carry out approved operational tasks such as navigating connected marketplaces, preparing listings, collecting evidence and repetitive UI work. Pause for user takeover when login, CAPTCHA, 2FA or other human interaction is required. Never bypass platform security or approval controls." },
 ] as const;
 
+const SPARKFORGE_FLUFFY_LOOKS: Record<string, typeof DEFAULT_LOOK> = {
+  scout: { ...DEFAULT_LOOK, color: "#9fcbff", accent: "#2a6fdb", eyeColor: "#2a6fdb", accessory: "antenna", fluffyRole: "Scout" },
+  product: { ...DEFAULT_LOOK, color: "#b9b3ff", accent: "#5b46d6", eyeColor: "#5b46d6", accessory: "cap", fluffyRole: "Forge" },
+  creative: { ...DEFAULT_LOOK, color: "#ffa7c4", accent: "#d8195f", eyeColor: "#d8195f", accessory: "bow", material: "velvet", fluffyRole: "Canvas" },
+  listing: { ...DEFAULT_LOOK, color: "#ffd98a", accent: "#e0492d", eyeColor: "#c2410c", accessory: "headphones", fluffyRole: "Listing" },
+  growth: { ...DEFAULT_LOOK, color: "#97e0b8", accent: "#1f8f5f", eyeColor: "#1f8f5f", accessory: "sprout", fluffyRole: "Pulse" },
+  audience: { ...DEFAULT_LOOK, color: "#ffd1f1", accent: "#a23aa7", eyeColor: "#7b3f9d", accessory: "halo", fluffyRole: "Audience" },
+  operator: { ...DEFAULT_LOOK, color: "#c7c3ff", accent: "#6a58d8", eyeColor: "#5546b8", accessory: "cap", shape: "chubby", fluffyRole: "Operator" },
+  computer: { ...DEFAULT_LOOK, color: "#d7e7ff", accent: "#3f73d8", eyeColor: "#2b5fd9", accessory: "headphones", fluffyRole: "Browser" },
+};
+
 const SCOUT_SKILL = [
   "Marketplace Opportunity Scan",
   "Repeatable Etsy/Gumroad opportunity research.",
@@ -66,7 +77,7 @@ export function ensureSparkForgeAgents() {
       name: preset.name,
       purpose: preset.purpose,
       instructions: preset.instructions,
-      look: existing[0]?.look ?? DEFAULT_LOOK,
+      look: SPARKFORGE_FLUFFY_LOOKS[preset.key] ?? DEFAULT_LOOK,
     });
     dots[preset.key] = dot.id;
     byName.set(preset.name.toLowerCase(), dot);
