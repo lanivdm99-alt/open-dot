@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, ArrowUpRight, Plus } from "lucide-react";
-import { startConversation, startSparkForgeOpportunity } from "@/app/actions";
+import { startConversation, startSparkForgeBrand, startSparkForgeOpportunity } from "@/app/actions";
 import { markRead, useStore } from "@/lib/store";
 import { DEFAULT_LOOK } from "@/lib/look";
 import { statusDot, statusLabel, timeAgo } from "@/lib/status";
@@ -25,6 +25,10 @@ export default function Home() {
   const [pending, start] = useTransition();
   const [opportunity, setOpportunity] = useState("");
   const [missionPending, startMission] = useTransition();
+  const [brandName, setBrandName] = useState("");
+  const [brandAudience, setBrandAudience] = useState("");
+  const [brandCategory, setBrandCategory] = useState("");
+  const [brandPending, startBrandMission] = useTransition();
 
   const latest = useMemo(
     () => messages.filter((m) => !m.channelId && ((m.role === "dot" && m.text) || (m.role === "card" && m.card?.status === "pending"))).slice(-6).reverse(),
@@ -60,6 +64,19 @@ export default function Home() {
       const convId = await startConversation(target.id, value);
       markRead(target.id);
       router.push(`/dots/${target.id}?c=${convId}`);
+    });
+  };
+
+  const runBrand = () => {
+    if (!brandName.trim() || !brandAudience.trim() || !brandCategory.trim()) return;
+    startBrandMission(async () => {
+      const convId = await startSparkForgeBrand({ name: brandName, audience: brandAudience, category: brandCategory });
+      if (convId) {
+        setBrandName("");
+        setBrandAudience("");
+        setBrandCategory("");
+        router.push(`/dots/${dots.find((d) => d.name === "Canvas")?.id}?c=${convId}`);
+      }
     });
   };
 
@@ -121,6 +138,36 @@ export default function Home() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <div className="surface overflow-hidden p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1">
+                <div className="eyebrow text-brand-readable">Brand Studio</div>
+                <h2 className="text-h2 mt-1">Forge a brand people remember.</h2>
+                <p className="text-body-sm mt-1 text-foreground/50">Canvas builds the canonical identity once, then every product and listing can reuse it.</p>
+              </div>
+              <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">One system · every asset</span>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <input value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="Brand name" className="field h-10" aria-label="Brand name" />
+              <input value={brandAudience} onChange={(e) => setBrandAudience(e.target.value)} placeholder="Who is it for?" className="field h-10" aria-label="Brand audience" />
+              <input
+                value={brandCategory}
+                onChange={(e) => setBrandCategory(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); runBrand(); } }}
+                placeholder="Category / niche"
+                className="field h-10"
+                aria-label="Brand category"
+              />
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button type="button" className="btn-brand h-10 px-4" disabled={brandPending || !brandName.trim() || !brandAudience.trim() || !brandCategory.trim() || !dots.find((d) => d.name === "Canvas")} onClick={runBrand}>
+                {brandPending ? "Forging brand…" : "Forge brand system"}
+              </button>
             </div>
           </div>
         </section>
