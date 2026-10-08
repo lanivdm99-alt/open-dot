@@ -1,4 +1,4 @@
-// Open Dot desktop shell. Runs the Next.js standalone server as a background process (Electron's own Node,
+// SparkForge desktop shell. Runs the Next.js standalone server as a background process (Electron's own Node,
 // so nothing else needs installing) and shows it in a window. Closing the window keeps the server running,
 // so dots keep working and routines keep firing; quit from the menu or with ⌘Q.
 
@@ -39,7 +39,7 @@ function loginPath() {
 function startServer() {
   const dir = app.isPackaged ? path.join(process.resourcesPath, "server") : path.join(import.meta.dirname, "..", ".next", "standalone");
   if (!fs.existsSync(path.join(dir, "server.js"))) {
-    dialog.showErrorBox("Open Dot", `The app server is missing (${dir}). Run \`pnpm desktop:prepare\` first.`);
+    dialog.showErrorBox("SparkForge", `The app server is missing (${dir}). Run \`pnpm desktop:prepare\` first.`);
     app.exit(1);
     return;
   }
@@ -88,7 +88,7 @@ const LOADING = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype ht
   .dots span:nth-child(1){background:#0a0a0a}.dots span:nth-child(2){background:#51a2ff;animation-delay:.15s}.dots span:nth-child(3){background:#c8f169;animation-delay:.3s}
   @keyframes b{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   p{margin:0;font-size:13px;color:#0a0a0a8c}
-</style></head><body><div class="dots"><span></span><span></span><span></span></div><p>Starting Open Dot…</p></body></html>`)}`;
+</style></head><body><div class="dots"><span></span><span></span><span></span></div><p>Starting SparkForge…</p></body></html>`)}`;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -96,7 +96,7 @@ function createWindow() {
     height: 880,
     minWidth: 380,
     minHeight: 560,
-    title: "Open Dot",
+    title: "SparkForge",
     backgroundColor: "#f6f6f6",
     show: false,
     webPreferences: { contextIsolation: true, sandbox: true },
