@@ -13,8 +13,9 @@ const geistSans = localFont({ src: "../fonts/Geist-Variable.woff2", weight: "100
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Open Dot",
-  description: "Open-source personal AI agents that work on their own, on their own computers",
+  title: "SparkForge — Build. Create. Grow.",
+  description: "SparkForge is an AI-powered creator operating system for discovering opportunities, building digital products, creating visuals, launching listings and growing your business.",
+  applicationName: "SparkForge",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
