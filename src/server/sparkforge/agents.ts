@@ -28,6 +28,13 @@ const FORGE_SKILL = [
   "1. Restate the buyer and problem. 2. Use Scout evidence rather than inventing demand. 3. Define the minimum sellable product. 4. Add only variants that improve the offer. 5. Specify file formats, dimensions and production requirements. 6. Set a test price and explain it. 7. Define Creative and Listing handoffs. 8. Flag assumptions that need validation."
 ];
 
+const FORGE_MISSION_RULES = [
+  "When Scout hands you an opportunity id and validated evidence, inspect the evidence before designing.",
+  "Use save_product_blueprint exactly once for the first validated product concept.",
+  "The blueprint must specify buyer promise, contents, variants, file formats, production requirements, test price, creative direction and marketplace positioning.",
+  "Do not claim the product is created, published or selling. The blueprint is a production plan.",
+];
+
 const LISTING_SKILL = [
   "Marketplace Listing Pack",
   "Create a complete, truthful listing draft from a product blueprint.",
@@ -64,7 +71,7 @@ export function ensureSparkForgeAgents() {
   }
 
   repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
-  repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3]);
+  repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3] + "\n\n" + FORGE_MISSION_RULES.join("\n"));
   repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3]);
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
