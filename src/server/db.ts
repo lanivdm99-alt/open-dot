@@ -39,6 +39,15 @@ CREATE TABLE IF NOT EXISTS conversations (
   thread TEXT, pending TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS conversations_dot ON conversations(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS opportunity_briefs (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, query TEXT NOT NULL, niche TEXT NOT NULL DEFAULT '',
+  target_buyer TEXT NOT NULL DEFAULT '', demand_signals TEXT NOT NULL DEFAULT '[]', competitors TEXT NOT NULL DEFAULT '[]',
+  buyer_language TEXT NOT NULL DEFAULT '[]', gaps TEXT NOT NULL DEFAULT '[]', pricing TEXT NOT NULL DEFAULT '',
+  execution_difficulty TEXT NOT NULL DEFAULT '', score INTEGER NOT NULL DEFAULT 0, recommendation TEXT NOT NULL DEFAULT '',
+  sources TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'researching',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS opportunity_briefs_dot ON opportunity_briefs(dot_id, updated_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;
