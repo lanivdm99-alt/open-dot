@@ -17,6 +17,7 @@ export default function Home() {
   const loaded = useStore((s) => s.loaded);
   const messages = useStore((s) => s.messages);
   const opportunities = useStore((s) => s.opportunities);
+  const productBlueprints = useStore((s) => s.productBlueprints);
   const [picked, setPicked] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
@@ -151,6 +152,33 @@ export default function Home() {
                     <span>·</span>
                     <span>{opportunity.competitors.length} competitors captured</span>
                   </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {productBlueprints.length > 0 && (
+          <section className="mt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="eyebrow">Product forge · {productBlueprints.length}</h2>
+              <span className="font-mono text-[10px] tracking-wider text-brand-readable uppercase">Ready for creation</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {productBlueprints.slice(0, 4).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/dots/${product.dotId}`}
+                  className="surface group p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[15px] font-medium truncate">{product.name}</div>
+                      <div className="mt-1 line-clamp-2 text-body-sm text-foreground/50">{product.promise}</div>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-brand/10 px-2 py-1 font-mono text-[10px] tracking-wider text-brand-readable uppercase">{product.status}</span>
+                  </div>
+                  <div className="mt-3 text-body-sm text-foreground/55">{product.format} · {product.price}</div>
                 </Link>
               ))}
             </div>
