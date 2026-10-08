@@ -14,15 +14,42 @@ export const SPARKFORGE_AGENT_PRESETS = [
   { key: "computer", name: "Browser", purpose: "Execute approved browser and computer tasks for SparkForge.", instructions: "You are SparkForge execution specialist. Use your persistent browser/computer to carry out approved operational tasks such as navigating connected marketplaces, preparing listings, collecting evidence and repetitive UI work. Pause for user takeover when login, CAPTCHA, 2FA or other human interaction is required. Never bypass platform security or approval controls." },
 ] as const;
 
+const SCOUT_SKILL = [
+  "Marketplace Opportunity Scan",
+  "Repeatable Etsy/Gumroad opportunity research.",
+  "Scan a niche, compare competing products, identify buyer intent and gaps, estimate price positioning, and produce a scored opportunity brief.",
+  "1. State the exact niche/query. 2. Search current marketplace/web evidence. 3. Capture representative competing offers and observable pricing. 4. Identify repeated buyer language and unmet needs. 5. Separate observed facts from inference. 6. Score demand, competition, monetization and execution difficulty. 7. Recommend one product and explain why it wins. 8. Include sources and timestamps where available. Never fabricate sales, search volume or ranking data."
+];
+
 export function ensureSparkForgeAgents() {
   const existing = repo.listDots();
   const hasSparkForge = existing.some((dot) => SPARKFORGE_AGENT_PRESETS.some((preset) => dot.name.toLowerCase() === preset.name.toLowerCase()));
   if (hasSparkForge) return [];
+
   const created: string[] = [];
+  const dots: Record<string, string> = {};
   for (const preset of SPARKFORGE_AGENT_PRESETS) {
-    const dot = repo.createDot({ name: preset.name, purpose: preset.purpose, instructions: preset.instructions, look: existing[0]?.look ?? DEFAULT_LOOK });
-    repo.addMessage({ dotId: dot.id, role: "dot", text: "SparkForge " + preset.name + " online. My job is " + preset.purpose.toLowerCase() });
+    const dot = repo.createDot({
+      name: preset.name,
+      purpose: preset.purpose,
+      instructions: preset.instructions,
+      look: existing[0]?.look ?? DEFAULT_LOOK,
+    });
+    dots[preset.key] = dot.id;
+    repo.addMessage({
+      dotId: dot.id,
+      role: "dot",
+      text: "SparkForge " + preset.name + " online. My job is " + preset.purpose.toLowerCase(),
+    });
     created.push(dot.id);
   }
+
+  repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
+
+  // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
+  if (!repo.listChannels().some((c) => c.name.toLowerCase() === "sparkforge hq")) {
+    repo.createChannel("SparkForge HQ", dots.operator, Object.values(dots));
+  }
+
   return created;
 }
