@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS product_blueprints (
   status TEXT NOT NULL DEFAULT 'draft', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS product_blueprints_opportunity ON product_blueprints(opportunity_id, updated_at);
+CREATE TABLE IF NOT EXISTS listing_packs (
+  id TEXT PRIMARY KEY, product_blueprint_id TEXT NOT NULL, dot_id TEXT NOT NULL,
+  platform TEXT NOT NULL DEFAULT 'generic', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '[]', faq TEXT NOT NULL DEFAULT '[]', image_plan TEXT NOT NULL DEFAULT '[]',
+  disclosure_notes TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'draft',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS listing_packs_product ON listing_packs(product_blueprint_id, updated_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;
