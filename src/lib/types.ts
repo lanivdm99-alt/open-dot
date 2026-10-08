@@ -227,3 +227,4 @@ export type ServerEvent =
   | { type: "conversation"; data: Conversation }
   | { type: "conversation_deleted"; id: string }
   | { type: "opportunity"; data: OpportunityBrief };
+  | { type: "product_blueprint"; data: ProductBlueprint };
