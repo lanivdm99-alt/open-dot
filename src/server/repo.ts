@@ -4,7 +4,7 @@ import { emit } from "./bus";
 import { Cron } from "croner";
 import { normalizeLook } from "@/lib/look";
 import type {
-  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, Memory, Message, MessageRole, PasswordEntry, Routine, Rule, RuleDecision, Skill,
+  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, Routine, Rule, RuleDecision, Skill,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -380,6 +380,60 @@ export function addRule(input: { dotId: string | null; action: string; decision:
 export function deleteRule(ruleId: string) {
   db().prepare("DELETE FROM rules WHERE id = ?").run(ruleId);
   emit({ type: "rule_deleted", id: ruleId });
+}
+
+// ---------- SparkForge opportunity briefs ----------
+
+const toOpportunity = (r: Row): OpportunityBrief => ({
+  id: r.id as string,
+  dotId: r.dot_id as string,
+  query: r.query as string,
+  niche: r.niche as string,
+  targetBuyer: r.target_buyer as string,
+  demandSignals: JSON.parse((r.demand_signals as string) || "[]"),
+  competitors: JSON.parse((r.competitors as string) || "[]"),
+  buyerLanguage: JSON.parse((r.buyer_language as string) || "[]"),
+  gaps: JSON.parse((r.gaps as string) || "[]"),
+  pricing: r.pricing as string,
+  executionDifficulty: r.execution_difficulty as string,
+  score: Number(r.score),
+  recommendation: r.recommendation as string,
+  sources: JSON.parse((r.sources as string) || "[]"),
+  status: r.status as OpportunityBrief["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createOpportunityBrief(input: Omit<OpportunityBrief, "id" | "createdAt" | "updatedAt">): OpportunityBrief {
+  const opportunityId = id("opp");
+  const timestamp = now();
+  db().prepare(`INSERT INTO opportunity_briefs
+    (id, dot_id, query, niche, target_buyer, demand_signals, competitors, buyer_language, gaps, pricing, execution_difficulty, score, recommendation, sources, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      opportunityId, input.dotId, input.query, input.niche, input.targetBuyer,
+      JSON.stringify(input.demandSignals), JSON.stringify(input.competitors), JSON.stringify(input.buyerLanguage),
+      JSON.stringify(input.gaps), input.pricing, input.executionDifficulty, input.score, input.recommendation,
+      JSON.stringify(input.sources), input.status, timestamp, timestamp,
+    );
+  return getOpportunityBrief(opportunityId)!;
+}
+
+export function getOpportunityBrief(opportunityId: string): OpportunityBrief | null {
+  const r = db().prepare("SELECT * FROM opportunity_briefs WHERE id = ?").get(opportunityId);
+  return r ? toOpportunity(r as Row) : null;
+}
+
+export function listOpportunityBriefs(dotId?: string): OpportunityBrief[] {
+  const rows = dotId
+    ? db().prepare("SELECT * FROM opportunity_briefs WHERE dot_id = ? ORDER BY updated_at DESC").all(dotId)
+    : db().prepare("SELECT * FROM opportunity_briefs ORDER BY updated_at DESC").all();
+  return rows.map((r) => toOpportunity(r as Row));
+}
+
+export function updateOpportunityStatus(opportunityId: string, status: OpportunityBrief["status"]) {
+  db().prepare("UPDATE opportunity_briefs SET status = ?, updated_at = ? WHERE id = ?").run(status, now(), opportunityId);
+  return getOpportunityBrief(opportunityId);
 }
 
 // ---------- memories ----------
