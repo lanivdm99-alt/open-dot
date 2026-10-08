@@ -30,6 +30,8 @@ export type Look = {
   material: Material;
   eyes: Eyes;
   accessory: Accessory;
+  /** SparkForge character role; optional for legacy looks. */
+  fluffyRole?: string;
 };
 
 export type DotStatus = "idle" | "working" | "waiting" | "paused";
