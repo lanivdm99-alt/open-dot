@@ -23,6 +23,7 @@ const EMPTY: State = {
   apps: [],
   channels: [],
   conversations: [],
+  opportunities: [],
   loaded: false, connected: false, screens: {}, urls: {}, lastRead: {}, toasts: [],
 };
 
@@ -138,6 +139,8 @@ function apply(ev: ServerEvent) {
       return set({ conversations: upsert(state.conversations, ev.data) });
     case "conversation_deleted":
       return set({ conversations: without(state.conversations, ev.id), messages: state.messages.filter((m) => m.conversationId !== ev.id) });
+    case "opportunity":
+      return set({ opportunities: upsert(state.opportunities, ev.data) });
     case "channel_deleted":
       return set({ channels: without(state.channels, ev.id), messages: state.messages.filter((m) => m.channelId !== ev.id) });
   }
