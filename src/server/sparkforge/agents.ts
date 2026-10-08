@@ -96,7 +96,7 @@ export function ensureSparkForgeAgents() {
   repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
   repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3] + "\n\n" + FORGE_MISSION_RULES.join("\n"));
   repo.upsertSkill(dots.creative, BRAND_SKILL[0], BRAND_SKILL[1], BRAND_SKILL[2] + "\n\n" + BRAND_SKILL[3]);
-  repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3] + "\n\nWhen Forge gives you a product blueprint id, inspect that blueprint before drafting. Use save_listing_pack once the listing is complete.");
+  repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3] + "\n\nWhen Forge gives you a product blueprint id, inspect that blueprint before drafting. Use save_listing_pack once the listing is complete.");\n  repo.upsertSkill(dots.creative, "Fluffy Creative Direction", "Use the SparkForge Fluffy family as the visual identity for creative assets.", "Keep Fluffy proportions, expressive eyes, role cues and the SparkForge brand system consistent. Prefer the user-owned Fluffy artwork as the visual source of truth when available. For new generated variants, create original variations rather than copying unrelated mascots. Before production, define asset type, dimensions, background, pose, expression, accessory, lighting, composition and intended marketplace use.");
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
   const hq = repo.listChannels().find((c) => c.name.toLowerCase() === "sparkforge hq");
