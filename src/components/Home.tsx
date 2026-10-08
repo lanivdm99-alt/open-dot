@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, ArrowUpRight, Plus } from "lucide-react";
-import { startConversation } from "@/app/actions";
+import { startConversation, startSparkForgeOpportunity } from "@/app/actions";
 import { markRead, useStore } from "@/lib/store";
 import { DEFAULT_LOOK } from "@/lib/look";
 import { statusDot, statusLabel, timeAgo } from "@/lib/status";
@@ -19,6 +19,8 @@ export default function Home() {
   const [picked, setPicked] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
+  const [opportunity, setOpportunity] = useState("");
+  const [missionPending, startMission] = useTransition();
 
   const latest = useMemo(
     () => messages.filter((m) => !m.channelId && ((m.role === "dot" && m.text) || (m.role === "card" && m.card?.status === "pending"))).slice(-6).reverse(),
@@ -57,10 +59,69 @@ export default function Home() {
     });
   };
 
+  const runOpportunity = () => {
+    const value = opportunity.trim();
+    if (!value) return;
+    startMission(async () => {
+      const convId = await startSparkForgeOpportunity(value);
+      if (convId) {
+        setOpportunity("");
+        router.push(`/dots/${dots.find((d) => d.name === "Scout")?.id}?c=${convId}`);
+      }
+    });
+  };
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="rails mx-auto min-h-full max-w-[880px] px-4 sm:px-8 pb-16">
-        <section className="flex flex-col items-center pt-16 pb-10 text-center">
+        <section className="pt-10 sm:pt-12">
+          <div className="surface overflow-hidden border-brand/15 bg-gradient-to-br from-card via-card to-brand/[0.06]">
+            <div className="flex flex-col gap-6 p-5 sm:flex-row sm:items-center sm:p-6">
+              <div className="shrink-0">
+                {dots.find((d) => d.name === "Scout") ? (
+                  <Dot3DLazy
+                    look={dots.find((d) => d.name === "Scout")!.look}
+                    name="Scout"
+                    status={dots.find((d) => d.name === "Scout")!.status}
+                    size={112}
+                  />
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="eyebrow text-brand-readable/80">SparkForge Opportunity Lab</div>
+                <h1 className="text-h1 mt-2">Find something worth building.</h1>
+                <p className="text-body-sm mt-2 max-w-[620px] text-foreground/55">
+                  Scout researches current marketplace evidence, scores the opportunity, then hands the brief to Forge to turn it into a product.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={opportunity}
+                    onChange={(e) => setOpportunity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        runOpportunity();
+                      }
+                    }}
+                    placeholder="e.g. wedding planners for busy couples"
+                    className="field h-10 flex-1"
+                    aria-label="Opportunity research target"
+                  />
+                  <button
+                    type="button"
+                    className="btn-brand h-10 px-4"
+                    disabled={missionPending || !opportunity.trim() || !dots.find((d) => d.name === "Scout")}
+                    onClick={runOpportunity}
+                  >
+                    {missionPending ? "Scouting…" : "Find opportunity"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-col items-center pt-12 pb-10 text-center">
           {target && (
             <div className="dot-grid rounded-full">
               <Dot3DLazy look={target.look} name={target.name} status={target.status} size={128} />
