@@ -126,6 +126,44 @@ export const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: "save_brand_profile",
+    label: "Saving brand system",
+    description: "Persist the canonical SparkForge brand system used by Creative, Listing, Growth and Audience. Only Canvas or Operator may save it. This is a planning/identity artifact, not an external publishing action.",
+    parameters: obj({
+      name: str("Brand name"),
+      tagline: str("Short brand promise/tagline"),
+      audience: str("Primary target audience"),
+      positioning: str("One-paragraph positioning"),
+      voice: { type: "array", items: { type: "string" }, description: "3-6 voice traits with examples" },
+      colors: { type: "array", items: { type: "object", properties: { name: { type: "string" }, hex: { type: "string" }, role: { type: "string" } }, required: ["name", "hex", "role"], additionalProperties: false } },
+      fonts: { type: "object", properties: { heading: { type: "string" }, body: { type: "string" }, accent: { type: ["string", "null"] } }, required: ["heading", "body", "accent"], additionalProperties: false },
+      visual_direction: str("Visual direction for products, mockups and marketing"),
+      imagery_rules: { type: "array", items: { type: "string" } },
+      avoid: { type: "array", items: { type: "string" } },
+    }),
+    precheck: async (_a, ctx) => {
+      if (!["Canvas", "Operator"].includes(ctx.dot.name)) return "Only SparkForge Canvas or Operator may save brand profiles.";
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const brand = repo.createBrandProfile({
+        dotId: ctx.dot.id,
+        name: s(a.name),
+        tagline: s(a.tagline),
+        audience: s(a.audience),
+        positioning: s(a.positioning),
+        voice: Array.isArray(a.voice) ? a.voice.map(s) : [],
+        colors: Array.isArray(a.colors) ? a.colors as { name: string; hex: string; role: string }[] : [],
+        fonts: (a.fonts && typeof a.fonts === "object") ? a.fonts as { heading: string; body: string; accent?: string } : { heading: "Geist Sans", body: "Geist Sans" },
+        visualDirection: s(a.visual_direction),
+        imageryRules: Array.isArray(a.imagery_rules) ? a.imagery_rules.map(s) : [],
+        avoid: Array.isArray(a.avoid) ? a.avoid.map(s) : [],
+        status: "ready",
+      });
+      return `Saved brand profile ${brand.id}: ${brand.name}. Creative and Growth can now use this system.`;
+    },
+  },
+  {
     name: "save_product_blueprint",
     label: "Saving product blueprint",
     description: "Persist a production-ready SparkForge digital product blueprint after Forge validates an opportunity. Only Forge should use this tool. Do not claim a product exists or is launched; this is a planning artifact.",
