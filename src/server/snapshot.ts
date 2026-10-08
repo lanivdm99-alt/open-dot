@@ -46,5 +46,6 @@ export function snapshot(): Snapshot {
     conversations: repo.listConversations(),
     opportunities: repo.listOpportunityBriefs(),
     productBlueprints: repo.listProductBlueprints(),
+    listingPacks: repo.listListingPacks(),
   };
 }
