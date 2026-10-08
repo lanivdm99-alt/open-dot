@@ -234,6 +234,30 @@ export default function Home() {
           </section>
         )}
 
+        <section className="mt-6">
+          <div className="mb-3 flex items-end justify-between">
+            <div>
+              <div className="eyebrow text-brand-readable">The Fluffy Crew</div>
+              <h2 className="text-h2 mt-1">Every job has a Fluffy.</h2>
+            </div>
+            <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">SparkForge native</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {["Scout", "Forge", "Canvas", "Listing", "Pulse", "Audience", "Operator", "Browser"].map((name) => {
+              const dot = dots.find((d) => d.name === name);
+              return dot ? (
+                <Link key={name} href={`/dots/${dot.id}`} className="surface group flex items-center gap-3 p-3 transition-transform hover:-translate-y-0.5">
+                  <Dot3DLazy look={dot.look} name={name} status={dot.status} size={54} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-medium">{name}</span>
+                    <span className="mt-0.5 block truncate font-mono text-[9px] tracking-wider text-foreground/40 uppercase">{dot.look.fluffyRole ?? "Fluffy"}</span>
+                  </span>
+                </Link>
+              ) : null;
+            })}
+          </div>
+        </section>
+
         {brandProfiles.length > 0 && (
           <section className="mt-6">
             <div className="surface overflow-hidden p-5">
