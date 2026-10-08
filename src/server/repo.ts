@@ -101,7 +101,8 @@ export function setActivity(dotId: string, label: string | null) {
 
 export function deleteDot(dotId: string) {
   const d = db();
-  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations", "opportunity_briefs", "product_blueprints"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
+  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations", "opportunity_briefs", "product_blueprints", "brand_profiles"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
+  d.prepare("DELETE FROM listing_packs WHERE dot_id = ?").run(dotId);
   d.prepare("DELETE FROM dots WHERE id = ?").run(dotId);
   emit({ type: "dot_deleted", id: dotId });
 }
