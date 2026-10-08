@@ -4,7 +4,7 @@ import { emit } from "./bus";
 import { Cron } from "croner";
 import { normalizeLook } from "@/lib/look";
 import type {
-  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, ListingPack, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill,
+  AppTrigger, Attachment, BrandProfile, CardData, Channel, Conversation, Dot, DotStatus, Look, ListingPack, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -380,6 +380,54 @@ export function addRule(input: { dotId: string | null; action: string; decision:
 export function deleteRule(ruleId: string) {
   db().prepare("DELETE FROM rules WHERE id = ?").run(ruleId);
   emit({ type: "rule_deleted", id: ruleId });
+}
+
+// ---------- SparkForge brand profiles ----------
+
+const toBrandProfile = (r: Row): BrandProfile => ({
+  id: r.id as string,
+  dotId: r.dot_id as string,
+  name: r.name as string,
+  tagline: r.tagline as string,
+  audience: r.audience as string,
+  positioning: r.positioning as string,
+  voice: JSON.parse((r.voice as string) || "[]"),
+  colors: JSON.parse((r.colors as string) || "[]"),
+  fonts: JSON.parse((r.fonts as string) || "{}"),
+  visualDirection: r.visual_direction as string,
+  imageryRules: JSON.parse((r.imagery_rules as string) || "[]"),
+  avoid: JSON.parse((r.avoid as string) || "[]"),
+  status: r.status as BrandProfile["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createBrandProfile(input: Omit<BrandProfile, "id" | "createdAt" | "updatedAt">): BrandProfile {
+  const brandId = id("brand");
+  const timestamp = now();
+  db().prepare(`INSERT INTO brand_profiles
+    (id, dot_id, name, tagline, audience, positioning, voice, colors, fonts, visual_direction, imagery_rules, avoid, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      brandId, input.dotId, input.name, input.tagline, input.audience, input.positioning,
+      JSON.stringify(input.voice), JSON.stringify(input.colors), JSON.stringify(input.fonts),
+      input.visualDirection, JSON.stringify(input.imageryRules), JSON.stringify(input.avoid), input.status, timestamp, timestamp,
+    );
+  const brand = getBrandProfile(brandId)!;
+  emit({ type: "brand_profile", data: brand });
+  return brand;
+}
+
+export function getBrandProfile(brandId: string): BrandProfile | null {
+  const r = db().prepare("SELECT * FROM brand_profiles WHERE id = ?").get(brandId);
+  return r ? toBrandProfile(r as Row) : null;
+}
+
+export function listBrandProfiles(dotId?: string): BrandProfile[] {
+  const rows = dotId
+    ? db().prepare("SELECT * FROM brand_profiles WHERE dot_id = ? ORDER BY updated_at DESC").all(dotId)
+    : db().prepare("SELECT * FROM brand_profiles ORDER BY updated_at DESC").all();
+  return rows.map((r) => toBrandProfile(r as Row));
 }
 
 // ---------- SparkForge listing packs ----------
