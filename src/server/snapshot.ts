@@ -47,5 +47,6 @@ export function snapshot(): Snapshot {
     opportunities: repo.listOpportunityBriefs(),
     productBlueprints: repo.listProductBlueprints(),
     listingPacks: repo.listListingPacks(),
+    brandProfiles: repo.listBrandProfiles(),
   };
 }
