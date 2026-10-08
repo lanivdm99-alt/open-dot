@@ -23,7 +23,7 @@ const EMPTY: State = {
   apps: [],
   channels: [],
   conversations: [],
-  opportunities: [], productBlueprints: [], listingPacks: [],
+  opportunities: [], productBlueprints: [], listingPacks: [], brandProfiles: [],
   loaded: false, connected: false, screens: {}, urls: {}, lastRead: {}, toasts: [],
 };
 
@@ -145,6 +145,8 @@ function apply(ev: ServerEvent) {
       return set({ productBlueprints: upsert(state.productBlueprints, ev.data) });
     case "listing_pack":
       return set({ listingPacks: upsert(state.listingPacks, ev.data) });
+    case "brand_profile":
+      return set({ brandProfiles: upsert(state.brandProfiles, ev.data) });
     case "channel_deleted":
       return set({ channels: without(state.channels, ev.id), messages: state.messages.filter((m) => m.channelId !== ev.id) });
   }
