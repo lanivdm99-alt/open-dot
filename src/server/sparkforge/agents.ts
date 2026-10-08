@@ -33,6 +33,7 @@ const FORGE_MISSION_RULES = [
   "Use save_product_blueprint exactly once for the first validated product concept.",
   "The blueprint must specify buyer promise, contents, variants, file formats, production requirements, test price, creative direction and marketplace positioning.",
   "Do not claim the product is created, published or selling. The blueprint is a production plan.",
+  "After saving the blueprint, hand the blueprint id and opportunity context to Canvas for creative production planning and Listing for marketplace copy. External publishing remains approval-gated.",
 ];
 
 const LISTING_SKILL = [
@@ -72,7 +73,7 @@ export function ensureSparkForgeAgents() {
 
   repo.upsertSkill(dots.scout, SCOUT_SKILL[0], SCOUT_SKILL[1], SCOUT_SKILL[2] + "\n\n" + SCOUT_SKILL[3]);
   repo.upsertSkill(dots.product, FORGE_SKILL[0], FORGE_SKILL[1], FORGE_SKILL[2] + "\n\n" + FORGE_SKILL[3] + "\n\n" + FORGE_MISSION_RULES.join("\n"));
-  repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3]);
+  repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3] + "\n\nWhen Forge gives you a product blueprint id, inspect that blueprint before drafting. Use save_listing_pack once the listing is complete.");
 
   // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
   const hq = repo.listChannels().find((c) => c.name.toLowerCase() === "sparkforge hq");
