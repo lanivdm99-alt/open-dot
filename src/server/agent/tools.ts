@@ -90,6 +90,48 @@ export const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: "save_opportunity_brief",
+    label: "Saving opportunity research",
+    description: "Persist a structured SparkForge opportunity brief after completing evidence-based marketplace research. Only SparkForge Scout should use this tool. Never invent demand, sales, ranking or search-volume data.",
+    parameters: obj({
+      opportunity_id: str("The SparkForge opportunity id supplied in the mission"),
+      niche: str("The researched niche"),
+      target_buyer: str("The primary buyer"),
+      demand_signals: { type: "array", items: { type: "string" }, description: "Observed demand signals; facts only" },
+      competitors: { type: "array", items: { type: "object", properties: { name: { type: "string" }, price: { type: ["string", "null"] }, url: { type: ["string", "null"] }, notes: { type: "string" } }, required: ["name", "price", "url", "notes"], additionalProperties: false } },
+      buyer_language: { type: "array", items: { type: "string" }, description: "Repeated buyer language or pain points actually observed" },
+      gaps: { type: "array", items: { type: "string" }, description: "Evidence-backed gaps or differentiation opportunities" },
+      pricing: str("Recommended test price and positioning rationale"),
+      execution_difficulty: str("Low, medium or high with a short rationale"),
+      score: { type: "integer", minimum: 0, maximum: 100, description: "Opportunity score from 0 to 100" },
+      recommendation: str("One concrete product or bundle recommendation and why it wins"),
+      sources: { type: "array", items: { type: "object", properties: { title: { type: "string" }, url: { type: "string" }, observedAt: { type: ["string", "null"] } }, required: ["title", "url", "observedAt"], additionalProperties: false } },
+    }),
+    precheck: async (a, ctx) => {
+      if (!["Scout", "Operator"].includes(ctx.dot.name)) return "Only SparkForge Scout or Operator may save opportunity briefs.";
+      if (!repo.getOpportunityBrief(s(a.opportunity_id))) return `Opportunity ${s(a.opportunity_id)} does not exist.`;
+      return null;
+    },
+    execute: async (a) => {
+      const id = s(a.opportunity_id);
+      const brief = repo.updateOpportunityBrief(id, {
+        niche: s(a.niche),
+        targetBuyer: s(a.target_buyer),
+        demandSignals: Array.isArray(a.demand_signals) ? a.demand_signals.map(s) : [],
+        competitors: Array.isArray(a.competitors) ? a.competitors as { name: string; price?: string; url?: string; notes: string }[] : [],
+        buyerLanguage: Array.isArray(a.buyer_language) ? a.buyer_language.map(s) : [],
+        gaps: Array.isArray(a.gaps) ? a.gaps.map(s) : [],
+        pricing: s(a.pricing),
+        executionDifficulty: s(a.execution_difficulty),
+        score: Math.max(0, Math.min(100, Number(a.score) || 0)),
+        recommendation: s(a.recommendation),
+        sources: Array.isArray(a.sources) ? a.sources as { title: string; url: string; observedAt?: string }[] : [],
+        status: "validated",
+      });
+      return brief ? `Saved validated opportunity brief ${brief.id} with score ${brief.score}/100. Pass the brief to Forge for product design.` : "Unable to save opportunity brief.";
+    },
+  },
+  {
     name: "open_url",
     label: "Browsing the web",
     description: "Open a URL in your browser (you'll see it via the computer tool / read_page). Your browser keeps its logins.",
