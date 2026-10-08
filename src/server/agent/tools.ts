@@ -90,6 +90,49 @@ export const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: "save_product_blueprint",
+    label: "Saving product blueprint",
+    description: "Persist a production-ready SparkForge digital product blueprint after Forge validates an opportunity. Only Forge should use this tool. Do not claim a product exists or is launched; this is a planning artifact.",
+    parameters: obj({
+      opportunity_id: str("The validated opportunity id"),
+      name: str("Product name"),
+      promise: str("Clear buyer-facing promise"),
+      format: str("Primary product format and file types"),
+      contents: { type: "array", items: { type: "string" }, description: "What the buyer receives" },
+      variants: { type: "array", items: { type: "string" }, description: "Optional variants or bundle upgrades" },
+      price: str("Test price and rationale"),
+      production_requirements: { type: "array", items: { type: "string" }, description: "Production specifications and constraints" },
+      creative_brief: str("Visual direction for Canvas"),
+      listing_angle: str("Marketplace positioning for Listing"),
+    }),
+    precheck: async (a, ctx) => {
+      if (ctx.dot.name !== "Forge") return "Only SparkForge Forge may save product blueprints.";
+      const opportunity = repo.getOpportunityBrief(s(a.opportunity_id));
+      if (!opportunity) return `Opportunity ${s(a.opportunity_id)} does not exist.`;
+      if (opportunity.status !== "validated" && opportunity.status !== "building") return "Opportunity must be validated before Forge creates a product blueprint.";
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const opportunityId = s(a.opportunity_id);
+      const blueprint = repo.createProductBlueprint({
+        opportunityId,
+        dotId: ctx.dot.id,
+        name: s(a.name),
+        promise: s(a.promise),
+        format: s(a.format),
+        contents: Array.isArray(a.contents) ? a.contents.map(s) : [],
+        variants: Array.isArray(a.variants) ? a.variants.map(s) : [],
+        price: s(a.price),
+        productionRequirements: Array.isArray(a.production_requirements) ? a.production_requirements.map(s) : [],
+        creativeBrief: s(a.creative_brief),
+        listingAngle: s(a.listing_angle),
+        status: "ready",
+      });
+      repo.updateOpportunityStatus(opportunityId, "building");
+      return `Saved product blueprint ${blueprint.id}: ${blueprint.name}. Canvas and Listing can now use it. Publishing remains approval-gated.`;
+    },
+  },
+  {
     name: "save_opportunity_brief",
     label: "Saving opportunity research",
     description: "Persist a structured SparkForge opportunity brief after completing evidence-based marketplace research. Only SparkForge Scout should use this tool. Never invent demand, sales, ranking or search-volume data.",
