@@ -42,8 +42,8 @@ export default function Home() {
           <div className="dot-grid rounded-full">
             <Dot3DLazy look={DEFAULT_LOOK} size={240} stage />
           </div>
-          <div className="eyebrow mt-6 text-brand-readable/80">Personal agents</div>
-          <h1 className="text-display mt-3">Meet your dots</h1>
+          <div className="eyebrow mt-6 text-brand-readable/80">Your Fluffies</div>
+          <h1 className="text-display mt-3">Meet your Fluffies</h1>
           <p className="text-body-lg mt-4 max-w-[520px] text-foreground/60">
             Dots work on their own. Each one has its own computer and browser, remembers what matters, runs routines on a schedule, and knows when to ask for your approval.
           </p>
