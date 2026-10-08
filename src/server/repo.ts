@@ -431,6 +431,29 @@ export function listOpportunityBriefs(dotId?: string): OpportunityBrief[] {
   return rows.map((r) => toOpportunity(r as Row));
 }
 
+export function updateOpportunityBrief(opportunityId: string, patch: Partial<Omit<OpportunityBrief, "id" | "dotId" | "createdAt" | "updatedAt">>) {
+  const cols: string[] = [];
+  const vals: (string | number)[] = [];
+  const jsonFields: Record<string, string> = {
+    demandSignals: "demand_signals", competitors: "competitors", buyerLanguage: "buyer_language", gaps: "gaps", sources: "sources",
+  };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      query: "query", niche: "niche", targetBuyer: "target_buyer", pricing: "pricing",
+      executionDifficulty: "execution_difficulty", score: "score", recommendation: "recommendation", status: "status",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" ? JSON.stringify(value) : (value as string | number));
+  }
+  if (!cols.length) return getOpportunityBrief(opportunityId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE opportunity_briefs SET ${cols.join(", ")} WHERE id = ?`).run(...vals, opportunityId);
+  return getOpportunityBrief(opportunityId);
+}
+
 export function updateOpportunityStatus(opportunityId: string, status: OpportunityBrief["status"]) {
   db().prepare("UPDATE opportunity_briefs SET status = ?, updated_at = ? WHERE id = ?").run(status, now(), opportunityId);
   return getOpportunityBrief(opportunityId);
