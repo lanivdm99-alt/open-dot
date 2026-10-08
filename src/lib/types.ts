@@ -129,6 +129,22 @@ export type ProductBlueprint = {
   createdAt: number;
   updatedAt: number;
 };
+
+export type ListingPack = {
+  id: string;
+  productBlueprintId: string;
+  dotId: string;
+  platform: "etsy" | "gumroad" | "generic";
+  title: string;
+  description: string;
+  tags: string[];
+  faq: string[];
+  imagePlan: string[];
+  disclosureNotes: string[];
+  status: "draft" | "ready" | "approved" | "published";
+  createdAt: number;
+  updatedAt: number;
+};
 /** A Composio trigger: when something happens in one of the user's apps, a dot runs an instruction. */
 // Picking a trigger: apps connected for triggers, and the events each app offers.
 export type TriggerApp = { slug: string; name: string; connected: boolean };
@@ -178,6 +194,7 @@ export type Snapshot = {
   conversations: Conversation[];
   opportunities: OpportunityBrief[];
   productBlueprints: ProductBlueprint[];
+  listingPacks: ListingPack[];
 };
 
 /** A Composio app the user can connect (Gmail, Slack…). */
@@ -227,4 +244,5 @@ export type ServerEvent =
   | { type: "conversation"; data: Conversation }
   | { type: "conversation_deleted"; id: string }
   | { type: "opportunity"; data: OpportunityBrief };
-  | { type: "product_blueprint"; data: ProductBlueprint };
+  | { type: "product_blueprint"; data: ProductBlueprint }
+  | { type: "listing_pack"; data: ListingPack };
