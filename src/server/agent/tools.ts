@@ -90,6 +90,42 @@ export const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: "save_listing_pack",
+    label: "Saving marketplace listing",
+    description: "Persist a truthful marketplace listing draft from a SparkForge product blueprint. Only Listing should use this tool. Publishing is a separate approval-gated action.",
+    parameters: obj({
+      product_blueprint_id: str("The product blueprint id"),
+      platform: { type: "string", enum: ["etsy", "gumroad", "generic"], description: "Target marketplace" },
+      title: str("Buyer-facing listing title"),
+      description: str("Complete listing description"),
+      tags: { type: "array", items: { type: "string" }, description: "Keyword/tag candidates grounded in observed buyer language" },
+      faq: { type: "array", items: { type: "string" }, description: "Frequently asked questions and answers" },
+      image_plan: { type: "array", items: { type: "string" }, description: "Listing image sequence" },
+      disclosure_notes: { type: "array", items: { type: "string" }, description: "AI, licensing, commercial-use or other disclosures that need to be shown" },
+    }),
+    precheck: async (a, ctx) => {
+      if (ctx.dot.name !== "Listing") return "Only SparkForge Listing may save listing packs.";
+      const product = repo.getProductBlueprint(s(a.product_blueprint_id));
+      if (!product) return `Product blueprint ${s(a.product_blueprint_id)} does not exist.`;
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const pack = repo.createListingPack({
+        productBlueprintId: s(a.product_blueprint_id),
+        dotId: ctx.dot.id,
+        platform: s(a.platform) as "etsy" | "gumroad" | "generic",
+        title: s(a.title),
+        description: s(a.description),
+        tags: Array.isArray(a.tags) ? a.tags.map(s) : [],
+        faq: Array.isArray(a.faq) ? a.faq.map(s) : [],
+        imagePlan: Array.isArray(a.image_plan) ? a.image_plan.map(s) : [],
+        disclosureNotes: Array.isArray(a.disclosure_notes) ? a.disclosure_notes.map(s) : [],
+        status: "ready",
+      });
+      return `Saved listing pack ${pack.id} for ${pack.platform}. Publishing is still approval-gated.`;
+    },
+  },
+  {
     name: "save_product_blueprint",
     label: "Saving product blueprint",
     description: "Persist a production-ready SparkForge digital product blueprint after Forge validates an opportunity. Only Forge should use this tool. Do not claim a product exists or is launched; this is a planning artifact.",
