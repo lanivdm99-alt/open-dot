@@ -16,6 +16,7 @@ export default function Home() {
   const dots = useStore((s) => s.dots);
   const loaded = useStore((s) => s.loaded);
   const messages = useStore((s) => s.messages);
+  const opportunities = useStore((s) => s.opportunities);
   const [picked, setPicked] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
@@ -120,6 +121,41 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {opportunities.length > 0 && (
+          <section className="mt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="eyebrow">Opportunity pipeline · {opportunities.length}</h2>
+              <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">Evidence-backed</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {opportunities.slice(0, 4).map((opportunity) => (
+                <Link
+                  key={opportunity.id}
+                  href={`/dots/${dots.find((d) => d.id === opportunity.dotId)?.id ?? ""}`}
+                  className="surface group p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[15px] font-medium truncate">{opportunity.recommendation || opportunity.query}</div>
+                      <div className="mt-1 text-body-sm text-foreground/50 truncate">{opportunity.targetBuyer || "Researching target buyer…"}</div>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-1 font-mono text-[10px] tracking-wider uppercase ${
+                      opportunity.score >= 75 ? "bg-success/10 text-success" : opportunity.score >= 55 ? "bg-warning/10 text-warning" : "bg-black/[0.05] text-foreground/45"
+                    }`}>
+                      {opportunity.score}/100
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 font-mono text-[10px] tracking-wider text-foreground/40 uppercase">
+                    <span>{opportunity.status}</span>
+                    <span>·</span>
+                    <span>{opportunity.competitors.length} competitors captured</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="flex flex-col items-center pt-12 pb-10 text-center">
           {target && (
