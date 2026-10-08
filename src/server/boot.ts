@@ -6,12 +6,18 @@ import { computerInfo } from "./snapshot";
 import { startScheduler } from "./scheduler";
 import { startEvents as startTriggerEvents } from "./triggers";
 import { refresh as refreshComposio, signedIn } from "./composio";
+import { ensureSparkForgeAgents } from "./sparkforge/agents";
 
 export function boot() {
   // Nothing is running after a restart; don't leave dots stuck in "working".
   for (const dot of repo.listDots()) {
     if (dot.status === "working") repo.updateDot(dot.id, { status: repo.pendingCards(dot.id).length ? "waiting" : "idle" });
   }
+
+  // First-run SparkForge bootstrap: seed the specialist workforce on a clean install.
+  // Existing users who already have a SparkForge agent are left untouched.
+  ensureSparkForgeAgents();
+
   startScheduler();
   // Listen for Composio trigger events (only if the user added a Composio API key).
   void startTriggerEvents();
