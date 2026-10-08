@@ -451,12 +451,16 @@ export function updateOpportunityBrief(opportunityId: string, patch: Partial<Omi
   cols.push("updated_at = ?");
   vals.push(now());
   db().prepare(`UPDATE opportunity_briefs SET ${cols.join(", ")} WHERE id = ?`).run(...vals, opportunityId);
-  return getOpportunityBrief(opportunityId);
+  const brief = getOpportunityBrief(opportunityId);
+  if (brief) emit({ type: "opportunity", data: brief });
+  return brief;
 }
 
 export function updateOpportunityStatus(opportunityId: string, status: OpportunityBrief["status"]) {
   db().prepare("UPDATE opportunity_briefs SET status = ?, updated_at = ? WHERE id = ?").run(status, now(), opportunityId);
-  return getOpportunityBrief(opportunityId);
+  const brief = getOpportunityBrief(opportunityId);
+  if (brief) emit({ type: "opportunity", data: brief });
+  return brief;
 }
 
 // ---------- memories ----------
