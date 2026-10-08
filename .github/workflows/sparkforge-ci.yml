@@ -2,9 +2,9 @@ name: SparkForge CI
 
 on:
   push:
-    branches: [sparkforge-foundation]
+    branches: [main, sparkforge-foundation]
   pull_request:
-    branches: [sparkforge-foundation]
+    branches: [main, sparkforge-foundation]
 
 jobs:
   verify:
