@@ -102,9 +102,13 @@ export function ensureSparkForgeAgents() {
   repo.upsertSkill(dots.listing, LISTING_SKILL[0], LISTING_SKILL[1], LISTING_SKILL[2] + "\n\n" + LISTING_SKILL[3] + "\n\nWhen Forge gives you a product blueprint id, call get_product_blueprint before drafting. Read the linked opportunity brief with get_opportunity_brief to ground claims and keywords. Use save_listing_pack once the listing is complete.");
   repo.upsertSkill(dots.creative, "Fluffy Creative Direction", "Use the SparkForge Fluffy family as the visual identity for creative assets.", "Keep Fluffy proportions, expressive eyes, role cues and the SparkForge brand system consistent. Prefer the user-owned Fluffy artwork as the visual source of truth when available. For new generated variants, create original variations rather than copying unrelated mascots. Before production, define asset type, dimensions, background, pose, expression, accessory, lighting, composition and intended marketplace use.");
 
-  // Give the workforce a shared room. Operator leads; specialist dots can be mentioned or delegated.
+  // Give the workforce a shared room with the Chief of Staff accountable for cross-team priorities.
   const hq = repo.listChannels().find((c) => c.name.toLowerCase() === "sparkforge hq");
-  if (!hq) {
+  if (hq) {
+    if (hq.leadId !== dots.chief || Object.values(dots).some((dotId) => !hq.memberIds.includes(dotId))) {
+      repo.updateChannel(hq.id, dots.chief, Object.values(dots));
+    }
+  } else {
     repo.createChannel("SparkForge HQ", dots.chief, Object.values(dots));
   }
 
