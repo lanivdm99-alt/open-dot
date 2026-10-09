@@ -243,7 +243,7 @@ export default function Home() {
             <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">SparkForge native</span>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {["Scout", "Forge", "Canvas", "Listing", "Pulse", "Audience", "Operator", "Browser"].map((name) => {
+            {["Chief of Staff", "Scout", "Forge", "Canvas", "Listing", "Pulse", "Audience", "Operator", "Browser"].map((name) => {
               const dot = dots.find((d) => d.name === name);
               return dot ? (
                 <Link key={name} href={`/dots/${dot.id}`} className="surface group flex items-center gap-3 p-3 transition-transform hover:-translate-y-0.5">
