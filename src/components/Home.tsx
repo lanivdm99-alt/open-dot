@@ -20,6 +20,7 @@ export default function Home() {
   const productBlueprints = useStore((s) => s.productBlueprints);
   const listingPacks = useStore((s) => s.listingPacks);
   const brandProfiles = useStore((s) => s.brandProfiles);
+  const missions = useStore((s) => s.missions);
   const [picked, setPicked] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
@@ -171,6 +172,45 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {missions.length > 0 && (
+          <section className="mt-6">
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <div className="eyebrow text-brand-readable">Chief of Staff</div>
+                <h2 className="text-h2 mt-1">Mission control · {missions.filter((m) => m.status === "active" || m.status === "blocked").length} in progress</h2>
+              </div>
+              <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">Tracked commitments</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {missions.filter((m) => m.status !== "completed" && m.status !== "cancelled").slice(0, 6).map((mission) => (
+                <Link
+                  key={mission.id}
+                  href={`/dots/${mission.ownerDotId ?? dots.find((d) => d.name === "Chief of Staff")?.id ?? ""}`}
+                  className="surface group p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[15px] font-medium">{mission.title}</div>
+                      <div className="mt-1 line-clamp-2 text-body-sm text-foreground/50">{mission.goal}</div>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-1 font-mono text-[10px] tracking-wider uppercase ${mission.status === "blocked" ? "bg-warning/10 text-warning" : mission.priority === "urgent" || mission.priority === "high" ? "bg-brand/10 text-brand-readable" : "bg-black/[0.05] text-foreground/45"}`}>
+                      {mission.status === "blocked" ? "Blocked" : mission.priority}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] tracking-wider text-foreground/40 uppercase">
+                    <span>{mission.status}</span>
+                    <span>·</span>
+                    <span>{dots.find((d) => d.id === mission.ownerDotId)?.name ?? "Unassigned"}</span>
+                    {mission.dueAt ? <><span>·</span><span>Due {new Date(mission.dueAt).toLocaleDateString()}</span></> : null}
+                  </div>
+                  {mission.nextAction ? <p className="mt-3 text-body-sm text-foreground/65"><span className="font-medium">Next:</span> {mission.nextAction}</p> : null}
+                  {mission.risks.length > 0 ? <p className="mt-2 line-clamp-1 text-body-sm text-warning">Risk: {mission.risks[0]}</p> : null}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {opportunities.length > 0 && (
           <section className="mt-6">
