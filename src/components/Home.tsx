@@ -55,7 +55,7 @@ export default function Home() {
     );
   }
 
-  const target = dots.find((d) => d.id === picked) ?? dots[0];
+  const target = dots.find((d) => d.id === picked) ?? dots.find((d) => d.name === "Chief of Staff") ?? dots[0];
 
   const submit = () => {
     const value = text.trim();
