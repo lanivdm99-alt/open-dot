@@ -235,6 +235,7 @@ export type Snapshot = {
   brandProfiles: BrandProfile[];
   productBlueprints: ProductBlueprint[];
   listingPacks: ListingPack[];
+  missions: SparkForgeMission[];
 };
 
 /** A Composio app the user can connect (Gmail, Slack…). */
