@@ -7,7 +7,7 @@ import { credentialFor } from "../vault";
 import { emit } from "../bus";
 import * as composio from "../composio";
 import * as files from "../files";
-import type { Dot, RuleDecision } from "@/lib/types";
+import type { Dot, RuleDecision, SparkForgeMission } from "@/lib/types";
 
 export type ToolCtx = { dot: Dot; signal: AbortSignal; depth: number };
 
@@ -88,6 +88,90 @@ export const TOOLS: ToolDef[] = [
     execute: async (a) => {
       const brand = repo.getBrandProfile(s(a.brand_profile_id));
       return brand ? JSON.stringify(brand, null, 2) : "Brand profile not found.";
+    },
+  },
+  {
+    name: "list_sparkforge_missions",
+    label: "Reviewing mission board",
+    description: "List persistent SparkForge missions, ordered by priority. Use this before planning new work to avoid losing track of active, blocked or completed commitments.",
+    parameters: obj({ status: { type: ["string", "null"], enum: ["planned", "active", "blocked", "completed", "cancelled", null], description: "Optional mission status filter" } }, ["status"]),
+    precheck: async (_a, ctx) => ["Chief of Staff", "Operator"].includes(ctx.dot.name) ? null : "Only Chief of Staff and Operator may access the mission board.",
+    execute: async (a) => JSON.stringify(repo.listSparkForgeMissions(s(a.status) || undefined), null, 2),
+  },
+  {
+    name: "create_sparkforge_mission",
+    label: "Creating a tracked mission",
+    description: "Create a persistent SparkForge mission with owner, priority, due date, acceptance criteria, dependencies, artifacts, risks and next action. Do this when the founder gives a substantial goal that needs tracking.",
+    parameters: obj({
+      title: str("Short mission title"),
+      goal: str("Outcome this mission must achieve"),
+      status: { type: "string", enum: ["planned", "active", "blocked", "completed", "cancelled"] },
+      priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
+      owner_dot_id: nullableStr("Responsible specialist dot id, or null if unassigned"),
+      due_at: { type: ["number", "null"], description: "Due time as Unix milliseconds, or null" },
+      acceptance_criteria: { type: "array", items: str("Measurable condition that proves completion") },
+      dependencies: { type: "array", items: str("Blocking mission id or dependency description") },
+      artifact_refs: { type: "array", items: str("Saved artifact id or link") },
+      risks: { type: "array", items: str("Known risk or unresolved uncertainty") },
+      decision_log: { type: "array", items: str("Decision and brief rationale") },
+      next_action: str("Single concrete next step"),
+    }),
+    precheck: async (_a, ctx) => ["Chief of Staff", "Operator"].includes(ctx.dot.name) ? null : "Only Chief of Staff and Operator may create missions.",
+    execute: async (a, ctx) => {
+      const mission = repo.createSparkForgeMission({
+        dotId: ctx.dot.id, title: s(a.title), goal: s(a.goal),
+        status: s(a.status) as SparkForgeMission["status"], priority: s(a.priority) as SparkForgeMission["priority"],
+        ownerDotId: a.owner_dot_id == null ? null : s(a.owner_dot_id),
+        dueAt: typeof a.due_at === "number" ? a.due_at : null,
+        acceptanceCriteria: Array.isArray(a.acceptance_criteria) ? a.acceptance_criteria.map(s) : [],
+        dependencies: Array.isArray(a.dependencies) ? a.dependencies.map(s) : [],
+        artifactRefs: Array.isArray(a.artifact_refs) ? a.artifact_refs.map(s) : [],
+        risks: Array.isArray(a.risks) ? a.risks.map(s) : [],
+        decisionLog: Array.isArray(a.decision_log) ? a.decision_log.map(s) : [],
+        nextAction: s(a.next_action),
+      });
+      return JSON.stringify(mission, null, 2);
+    },
+  },
+  {
+    name: "update_sparkforge_mission",
+    label: "Updating mission status",
+    description: "Update fields on an existing SparkForge mission. Only pass fields that changed. Record real progress, blockers, decisions and artifact ids; never mark a mission complete without verifying its acceptance criteria.",
+    parameters: obj({
+      mission_id: str("Existing SparkForge mission id"),
+      title: str("Updated title"),
+      goal: str("Updated outcome"),
+      status: { type: "string", enum: ["planned", "active", "blocked", "completed", "cancelled"] },
+      priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
+      owner_dot_id: nullableStr("Responsible specialist dot id, or null to unassign"),
+      due_at: { type: ["number", "null"], description: "Due time as Unix milliseconds, or null" },
+      acceptance_criteria: { type: "array", items: str("Measurable condition that proves completion") },
+      dependencies: { type: "array", items: str("Blocking mission id or dependency description") },
+      artifact_refs: { type: "array", items: str("Saved artifact id or link") },
+      risks: { type: "array", items: str("Known risk or unresolved uncertainty") },
+      decision_log: { type: "array", items: str("Decision and brief rationale") },
+      next_action: str("Single concrete next step"),
+    }, ["mission_id"]),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Operator"].includes(ctx.dot.name)) return "Only Chief of Staff and Operator may update missions.";
+      return repo.getSparkForgeMission(s(a.mission_id)) ? null : "Mission not found.";
+    },
+    execute: async (a) => {
+      const patch: Partial<Omit<SparkForgeMission, "id" | "dotId" | "createdAt" | "updatedAt">> = {};
+      if (a.title !== undefined) patch.title = s(a.title);
+      if (a.goal !== undefined) patch.goal = s(a.goal);
+      if (a.status !== undefined) patch.status = s(a.status) as SparkForgeMission["status"];
+      if (a.priority !== undefined) patch.priority = s(a.priority) as SparkForgeMission["priority"];
+      if (a.owner_dot_id !== undefined) patch.ownerDotId = a.owner_dot_id == null ? null : s(a.owner_dot_id);
+      if (a.due_at !== undefined) patch.dueAt = typeof a.due_at === "number" ? a.due_at : null;
+      if (a.acceptance_criteria !== undefined) patch.acceptanceCriteria = Array.isArray(a.acceptance_criteria) ? a.acceptance_criteria.map(s) : [];
+      if (a.dependencies !== undefined) patch.dependencies = Array.isArray(a.dependencies) ? a.dependencies.map(s) : [];
+      if (a.artifact_refs !== undefined) patch.artifactRefs = Array.isArray(a.artifact_refs) ? a.artifact_refs.map(s) : [];
+      if (a.risks !== undefined) patch.risks = Array.isArray(a.risks) ? a.risks.map(s) : [];
+      if (a.decision_log !== undefined) patch.decisionLog = Array.isArray(a.decision_log) ? a.decision_log.map(s) : [];
+      if (a.next_action !== undefined) patch.nextAction = s(a.next_action);
+      const mission = repo.updateSparkForgeMission(s(a.mission_id), patch);
+      return mission ? JSON.stringify(mission, null, 2) : "Mission not found.";
     },
   },
   {
