@@ -340,6 +340,16 @@ export function createChannel(name: string, leadId: string, memberIds: string[])
   return ch;
 }
 
+export function updateChannel(channelId: string, leadId: string, memberIds: string[]): Channel | null {
+  const channel = getChannel(channelId);
+  if (!channel) return null;
+  const members = [...new Set([leadId, ...memberIds])];
+  db().prepare("UPDATE channels SET lead_id = ?, members = ? WHERE id = ?").run(leadId, JSON.stringify(members), channelId);
+  const updated = getChannel(channelId)!;
+  emit({ type: "channel", data: updated });
+  return updated;
+}
+
 export function deleteChannel(channelId: string) {
   db().prepare("DELETE FROM messages WHERE channel_id = ?").run(channelId);
   db().prepare("DELETE FROM channels WHERE id = ?").run(channelId);
