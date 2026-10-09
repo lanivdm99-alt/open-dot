@@ -28,6 +28,7 @@ const THEMES: Record<string, FluffyTheme> = {
   Audience: { body: "#ffffff", light: "#ffffff", accent: "#4a70d8", eye: "#3c5fb8", accessory: "phone", tuft: 23 },
   Operator: { body: "#447cff", light: "#dfe9ff", accent: "#163eaa", eye: "#1e3f9e", accessory: "tie", tuft: 25 },
   Browser: { body: "#27b8f0", light: "#ddf8ff", accent: "#0677b2", eye: "#126b98", accessory: "headphones", tuft: 24 },
+  "Chief of Staff": { body: "#ffe0a3", light: "#fff6df", accent: "#b96d16", eye: "#94500e", accessory: "clipboard", tuft: 26 },
 };
 
 const FALLBACK: FluffyTheme = {
