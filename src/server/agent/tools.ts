@@ -49,6 +49,34 @@ export function setConsult(fn: typeof consultImpl) {
 
 export const TOOLS: ToolDef[] = [
   {
+    name: "get_opportunity_brief",
+    label: "Reading opportunity evidence",
+    description: "Read a saved SparkForge opportunity brief by id. Use this to ground product and marketing decisions in Scout's recorded evidence rather than relying on chat summaries.",
+    parameters: obj({ opportunity_id: str("Saved SparkForge opportunity brief id") }),
+    precheck: async (a, ctx) => {
+      if (!["Scout", "Forge", "Operator", "Canvas", "Listing", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge opportunity briefs.";
+      return repo.getOpportunityBrief(s(a.opportunity_id)) ? null : `No opportunity brief found for ${s(a.opportunity_id)}.`;
+    },
+    execute: async (a) => {
+      const brief = repo.getOpportunityBrief(s(a.opportunity_id));
+      return brief ? JSON.stringify(brief, null, 2) : "Opportunity brief not found.";
+    },
+  },
+  {
+    name: "get_product_blueprint",
+    label: "Reading product blueprint",
+    description: "Read a saved SparkForge product blueprint by id. Canvas and Listing should inspect the canonical blueprint before preparing assets or copy.",
+    parameters: obj({ product_blueprint_id: str("Saved SparkForge product blueprint id") }),
+    precheck: async (a, ctx) => {
+      if (!["Forge", "Canvas", "Listing", "Operator", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge product blueprints.";
+      return repo.getProductBlueprint(s(a.product_blueprint_id)) ? null : `No product blueprint found for ${s(a.product_blueprint_id)}.`;
+    },
+    execute: async (a) => {
+      const blueprint = repo.getProductBlueprint(s(a.product_blueprint_id));
+      return blueprint ? JSON.stringify(blueprint, null, 2) : "Product blueprint not found.";
+    },
+  },
+  {
     name: "run_command",
     label: "Running commands",
     description: "Run a bash command on your own computer (Linux; the working directory is your persistent workspace). Use it for scripts, data work, downloads, installing packages, etc.",
