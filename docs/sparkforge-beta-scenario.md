@@ -4,6 +4,14 @@ Use this checklist for every vertical slice. Run with a non-sensitive niche and 
 
 ## Scenario: marketplace idea to sellable listing draft
 
+### 0. Chief of Staff — coordinate the mission
+- Start from the home-screen chat with Chief of Staff and give it the desired business outcome and constraints.
+- Confirm it turns the goal into ordered stages, names the specialist owner for each stage, and defines concrete acceptance criteria.
+- Confirm it delegates bounded research/build tasks rather than claiming it completed them itself.
+- Confirm it can read canonical opportunity briefs, product blueprints and brand profiles using the relevant read tools.
+- Confirm its summary separates completed artifacts from proposed work, records blockers/risks and names the next action.
+- Confirm it asks the founder only when a judgment or consequential approval is genuinely required.
+
 ### 1. Scout — research
 - Enter a concrete niche in SparkForge Opportunity Lab (for example, printable onboarding kits for freelance designers).
 - Confirm Scout states the exact query and distinguishes observed evidence from inference.
