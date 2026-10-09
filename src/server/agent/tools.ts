@@ -54,7 +54,7 @@ export const TOOLS: ToolDef[] = [
     description: "Read a saved SparkForge opportunity brief by id. Use this to ground product and marketing decisions in Scout's recorded evidence rather than relying on chat summaries.",
     parameters: obj({ opportunity_id: str("Saved SparkForge opportunity brief id") }),
     precheck: async (a, ctx) => {
-      if (!["Scout", "Forge", "Operator", "Canvas", "Listing", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge opportunity briefs.";
+      if (!["Chief of Staff", "Scout", "Forge", "Operator", "Canvas", "Listing", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge opportunity briefs.";
       return repo.getOpportunityBrief(s(a.opportunity_id)) ? null : `No opportunity brief found for ${s(a.opportunity_id)}.`;
     },
     execute: async (a) => {
@@ -68,12 +68,26 @@ export const TOOLS: ToolDef[] = [
     description: "Read a saved SparkForge product blueprint by id. Canvas and Listing should inspect the canonical blueprint before preparing assets or copy.",
     parameters: obj({ product_blueprint_id: str("Saved SparkForge product blueprint id") }),
     precheck: async (a, ctx) => {
-      if (!["Forge", "Canvas", "Listing", "Operator", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge product blueprints.";
+      if (!["Chief of Staff", "Forge", "Canvas", "Listing", "Operator", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge product blueprints.";
       return repo.getProductBlueprint(s(a.product_blueprint_id)) ? null : `No product blueprint found for ${s(a.product_blueprint_id)}.`;
     },
     execute: async (a) => {
       const blueprint = repo.getProductBlueprint(s(a.product_blueprint_id));
       return blueprint ? JSON.stringify(blueprint, null, 2) : "Product blueprint not found.";
+    },
+  },
+  {
+    name: "get_brand_profile",
+    label: "Reading brand system",
+    description: "Read a saved SparkForge brand profile by id so the workforce can check current positioning, voice, colors and visual rules before producing assets.",
+    parameters: obj({ brand_profile_id: str("Saved SparkForge brand profile id") }),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Canvas", "Listing", "Pulse", "Audience", "Operator"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge brand profiles.";
+      return repo.getBrandProfile(s(a.brand_profile_id)) ? null : `No brand profile found for ${s(a.brand_profile_id)}.`;
+    },
+    execute: async (a) => {
+      const brand = repo.getBrandProfile(s(a.brand_profile_id));
+      return brand ? JSON.stringify(brand, null, 2) : "Brand profile not found.";
     },
   },
   {
