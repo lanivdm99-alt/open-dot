@@ -72,6 +72,15 @@ CREATE TABLE IF NOT EXISTS brand_profiles (
   created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS brand_profiles_dot ON brand_profiles(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS sparkforge_missions (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, title TEXT NOT NULL, goal TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'planned', priority TEXT NOT NULL DEFAULT 'normal', owner_dot_id TEXT,
+  due_at INTEGER, acceptance_criteria TEXT NOT NULL DEFAULT '[]', dependencies TEXT NOT NULL DEFAULT '[]',
+  artifact_refs TEXT NOT NULL DEFAULT '[]', risks TEXT NOT NULL DEFAULT '[]', decision_log TEXT NOT NULL DEFAULT '[]',
+  next_action TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sparkforge_missions_status ON sparkforge_missions(status, priority, updated_at);
+CREATE INDEX IF NOT EXISTS sparkforge_missions_owner ON sparkforge_missions(owner_dot_id, status);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;
