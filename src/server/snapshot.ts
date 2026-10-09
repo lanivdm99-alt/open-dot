@@ -48,5 +48,6 @@ export function snapshot(): Snapshot {
     productBlueprints: repo.listProductBlueprints(),
     listingPacks: repo.listListingPacks(),
     brandProfiles: repo.listBrandProfiles(),
+    missions: repo.listSparkForgeMissions(),
   };
 }
