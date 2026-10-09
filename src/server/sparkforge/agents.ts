@@ -22,7 +22,7 @@ const SPARKFORGE_FLUFFY_LOOKS: Record<string, typeof DEFAULT_LOOK> = {
   listing: { ...DEFAULT_LOOK, color: "#ffd98a", accent: "#e0492d", eyeColor: "#c2410c", accessory: "headphones", fluffyRole: "Listing" },
   growth: { ...DEFAULT_LOOK, color: "#97e0b8", accent: "#1f8f5f", eyeColor: "#1f8f5f", accessory: "sprout", fluffyRole: "Pulse" },
   audience: { ...DEFAULT_LOOK, color: "#ffd1f1", accent: "#a23aa7", eyeColor: "#7b3f9d", accessory: "halo", fluffyRole: "Audience" },
-  chief: { ...DEFAULT_LOOK, color: "#ffe0a3", accent: "#b96d16", eyeColor: "#94500e", accessory: "crown", shape: "chubby", fluffyRole: "Chief of Staff" },
+  chief: { ...DEFAULT_LOOK, color: "#ffe0a3", accent: "#b96d16", eyeColor: "#94500e", accessory: "cap", shape: "chubby", fluffyRole: "Chief of Staff" },
   operator: { ...DEFAULT_LOOK, color: "#c7c3ff", accent: "#6a58d8", eyeColor: "#5546b8", accessory: "cap", shape: "chubby", fluffyRole: "Operator" },
   computer: { ...DEFAULT_LOOK, color: "#d7e7ff", accent: "#3f73d8", eyeColor: "#2b5fd9", accessory: "headphones", fluffyRole: "Browser" },
 };
