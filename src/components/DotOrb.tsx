@@ -20,9 +20,9 @@ function mix(hex: string, other: string, t: number) {
 }
 
 export default function DotOrb({ look, name, status = "idle", size = 36 }: { look: Look; name?: string; status?: DotStatus; size?: number }) {
+  const id = useId().replace(/:/g, "");
   const sparkForgeNames = new Set(["Scout", "Forge", "Canvas", "Listing", "Pulse", "Audience", "Operator", "Browser"]);
   if (name && sparkForgeNames.has(name)) return <SparkForgeFluffy name={name} status={status} size={size} />;
-  const id = useId().replace(/:/g, "");
   const sleeping = status === "paused";
   const { rx, ry } = BODY[look.shape] ?? BODY.round;
   const cy = 52;
