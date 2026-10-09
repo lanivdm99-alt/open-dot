@@ -1,6 +1,6 @@
-# Open Dot
+# SparkForge
 
-OpenAI launched Dots on September 29, personal agents that keep working in the background on their own computers, but you need ChatGPT Pro or Business Premium to use them. Open Dot is an open source version that runs on your own Mac with your own OpenAI key, or with open models like Kimi, DeepSeek and Qwen through OpenRouter.
+SparkForge is a creator-focused AI operating system built on the open-source agent runtime in this repository. It turns the underlying personal-agent workspace into a specialist team for discovering opportunities, forging digital products, creating visuals, preparing marketplace listings and growing distribution. The original Open Dot foundation remains available in the codebase; SparkForge adds its own agent workforce, Fluffy character system, brand, opportunity pipeline and product-creation workflows.
 
 ## What your dots can do
 
@@ -16,11 +16,11 @@ OpenAI launched Dots on September 29, personal agents that keep working in the b
 
 ## Get it running on your Mac
 
-Open Dot is a desktop app. The window runs its own local server, and closing the window keeps your dots working in the background until you quit with ⌘Q.
+SparkForge is a desktop app. The window runs its own local server, and closing the window keeps your dots working in the background until you quit with ⌘Q.
 
 ```bash
 pnpm install
-pnpm desktop:build           # makes dist/Open Dot-<version>-arm64.dmg
+pnpm desktop:build           # makes the SparkForge desktop build
 ```
 
 The build isn't notarized yet, so the first time you open it, right-click the app and choose **Open**.
@@ -32,7 +32,7 @@ Then in **Settings**:
 3. If you want dots to keep working while your Mac sleeps, paste an [E2B](https://e2b.dev) key too, and each dot gets a cloud computer.
 4. For triggers, paste the API key of a project from [platform.composio.dev](https://platform.composio.dev), then add triggers from a dot's Setup page. You connect the apps for triggers again there, because they run in your own Composio project and not through the sign-in from step 2.
 
-Your data stays in `~/Library/Application Support/Open Dot`.
+Your data stays in `~/Library/Application Support/SparkForge`.
 
 ## Run it from source
 
@@ -70,7 +70,7 @@ In development everything is stored in `.data/` in the project folder.
 - Most triggers fire within seconds. Ones with an Interval setting, like Gmail's, can take up to that many minutes.
 - Open models don't get OpenAI's computer tool. They click and type by the text on the page instead, which works on most sites but not on things drawn on a canvas. Voice calls still need an OpenAI key.
 - For bookings and purchases, the site needs a card saved in your account there, or you take over for the payment step.
-- Open Dot isn't affiliated with OpenAI.
+- SparkForge is not affiliated with OpenAI.
 
 ## How it's put together
 

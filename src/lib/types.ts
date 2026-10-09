@@ -30,6 +30,8 @@ export type Look = {
   material: Material;
   eyes: Eyes;
   accessory: Accessory;
+  /** SparkForge character role; optional for legacy looks. */
+  fluffyRole?: string;
 };
 
 export type DotStatus = "idle" | "working" | "waiting" | "paused";
@@ -92,6 +94,96 @@ export type RuleDecision = "allow" | "ask" | "never";
 export type Rule = { id: string; dotId: string | null; action: string; decision: RuleDecision; createdAt: number };
 export type Memory = { id: string; dotId: string; text: string; createdAt: number };
 export type Skill = { id: string; dotId: string; name: string; description: string; body: string; createdAt: number };
+export type BrandProfile = {
+  id: string;
+  dotId: string;
+  name: string;
+  tagline: string;
+  audience: string;
+  positioning: string;
+  voice: string[];
+  colors: { name: string; hex: string; role: string }[];
+  fonts: { heading: string; body: string; accent?: string };
+  visualDirection: string;
+  imageryRules: string[];
+  avoid: string[];
+  status: "draft" | "ready";
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type OpportunityBrief = {
+  id: string;
+  dotId: string;
+  query: string;
+  niche: string;
+  targetBuyer: string;
+  demandSignals: string[];
+  competitors: { name: string; price?: string; url?: string; notes: string }[];
+  buyerLanguage: string[];
+  gaps: string[];
+  pricing: string;
+  executionDifficulty: string;
+  score: number;
+  recommendation: string;
+  sources: { title: string; url: string; observedAt?: string }[];
+  status: "researching" | "validated" | "building" | "archived";
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type ProductBlueprint = {
+  id: string;
+  opportunityId: string;
+  dotId: string;
+  name: string;
+  promise: string;
+  format: string;
+  contents: string[];
+  variants: string[];
+  price: string;
+  productionRequirements: string[];
+  creativeBrief: string;
+  listingAngle: string;
+  status: "draft" | "ready" | "creating" | "launched";
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SparkForgeMission = {
+  id: string;
+  dotId: string;
+  title: string;
+  goal: string;
+  status: "planned" | "active" | "blocked" | "completed" | "cancelled";
+  priority: "low" | "normal" | "high" | "urgent";
+  ownerDotId: string | null;
+  dueAt: number | null;
+  acceptanceCriteria: string[];
+  dependencies: string[];
+  artifactRefs: string[];
+  risks: string[];
+  decisionLog: string[];
+  nextAction: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type ListingPack = {
+  id: string;
+  productBlueprintId: string;
+  dotId: string;
+  platform: "etsy" | "gumroad" | "generic";
+  title: string;
+  description: string;
+  tags: string[];
+  faq: string[];
+  imagePlan: string[];
+  disclosureNotes: string[];
+  status: "draft" | "ready" | "approved" | "published";
+  createdAt: number;
+  updatedAt: number;
+};
 /** A Composio trigger: when something happens in one of the user's apps, a dot runs an instruction. */
 // Picking a trigger: apps connected for triggers, and the events each app offers.
 export type TriggerApp = { slug: string; name: string; connected: boolean };
@@ -139,6 +231,11 @@ export type Snapshot = {
   apps: ToolkitState[];
   channels: Channel[];
   conversations: Conversation[];
+  opportunities: OpportunityBrief[];
+  brandProfiles: BrandProfile[];
+  productBlueprints: ProductBlueprint[];
+  listingPacks: ListingPack[];
+  missions: SparkForgeMission[];
 };
 
 /** A Composio app the user can connect (Gmail, Slack…). */
@@ -186,4 +283,9 @@ export type ServerEvent =
   | { type: "channel"; data: Channel }
   | { type: "channel_deleted"; id: string }
   | { type: "conversation"; data: Conversation }
-  | { type: "conversation_deleted"; id: string };
+  | { type: "conversation_deleted"; id: string }
+  | { type: "opportunity"; data: OpportunityBrief }
+  | { type: "brand_profile"; data: BrandProfile }
+  | { type: "product_blueprint"; data: ProductBlueprint }
+  | { type: "listing_pack"; data: ListingPack }
+  | { type: "sparkforge_mission"; data: SparkForgeMission };

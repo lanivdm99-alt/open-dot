@@ -9,19 +9,11 @@ import { markRead, useStore } from "@/lib/store";
 import { setSidebarOpen, useSidebarOpen } from "@/lib/ui";
 import { statusDot, timeAgo } from "@/lib/status";
 import DotOrb from "./DotOrb";
+import SparkForgeMark from "./SparkForgeMark";
 import type { Conversation, Message } from "@/lib/types";
 
 export function Wordmark() {
-  return (
-    <span className="flex items-center gap-2">
-      <span className="flex -space-x-1">
-        <span className="size-3 rounded-full bg-foreground ring-2 ring-card" />
-        <span className="size-3 rounded-full bg-brand ring-2 ring-card" />
-        <span className="size-3 rounded-full bg-highlight ring-2 ring-card" />
-      </span>
-      <span className="text-[15px] font-medium tracking-tight">open dot</span>
-    </span>
-  );
+  return <SparkForgeMark size={28} showWordmark />;
 }
 
 /** Last readable line of a conversation, for the preview under its title. */
@@ -140,7 +132,7 @@ export default function Sidebar() {
                 title={`${d.name}${d.purpose ? ` · ${d.purpose}` : ""}`}
               >
                 <span className="relative">
-                  <DotOrb look={d.look} status={d.status} size={40} />
+                  <DotOrb look={d.look} name={d.name} status={d.status} size={40} />
                   {d.status !== "idle" && <span className={`absolute right-0 bottom-0.5 size-2.5 rounded-full ring-2 ring-card ${statusDot(d)}`} />}
                 </span>
                 <span className="w-full truncate text-center text-[11px] text-foreground/70">{d.name}</span>
@@ -180,7 +172,7 @@ export default function Sidebar() {
           return (
             <div key={c.id} className={`group relative flex items-center rounded-xl transition-colors ${c.id === activeConv ? "bg-card shadow-2xs" : "hover:bg-black/[0.03]"}`}>
               <Link href={`/dots/${d.id}?c=${c.id}`} onClick={() => markRead(d.id)} className="flex min-w-0 flex-1 items-center gap-3 px-2.5 py-2.5">
-                <DotOrb look={d.look} status={d.status} size={42} />
+                <DotOrb look={d.look} name={d.name} status={d.status} size={42} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline gap-2">
                     <span className="truncate text-[15px] font-medium">{c.title}</span>

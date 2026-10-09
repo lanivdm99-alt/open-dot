@@ -4,7 +4,7 @@ import { emit } from "./bus";
 import { Cron } from "croner";
 import { normalizeLook } from "@/lib/look";
 import type {
-  AppTrigger, Attachment, CardData, Channel, Conversation, Dot, DotStatus, Look, Memory, Message, MessageRole, PasswordEntry, Routine, Rule, RuleDecision, Skill,
+  AppTrigger, Attachment, BrandProfile, CardData, Channel, Conversation, Dot, DotStatus, Look, ListingPack, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill, SparkForgeMission,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -101,7 +101,8 @@ export function setActivity(dotId: string, label: string | null) {
 
 export function deleteDot(dotId: string) {
   const d = db();
-  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
+  for (const t of ["messages", "memories", "skills", "routines", "triggers", "rules", "conversations", "opportunity_briefs", "product_blueprints", "brand_profiles"]) d.prepare(`DELETE FROM ${t} WHERE dot_id = ?`).run(dotId);
+  d.prepare("DELETE FROM listing_packs WHERE dot_id = ?").run(dotId);
   d.prepare("DELETE FROM dots WHERE id = ?").run(dotId);
   emit({ type: "dot_deleted", id: dotId });
 }
@@ -339,6 +340,16 @@ export function createChannel(name: string, leadId: string, memberIds: string[])
   return ch;
 }
 
+export function updateChannel(channelId: string, leadId: string, memberIds: string[]): Channel | null {
+  const channel = getChannel(channelId);
+  if (!channel) return null;
+  const members = [...new Set([leadId, ...memberIds])];
+  db().prepare("UPDATE channels SET lead_id = ?, members = ? WHERE id = ?").run(leadId, JSON.stringify(members), channelId);
+  const updated = getChannel(channelId)!;
+  emit({ type: "channel", data: updated });
+  return updated;
+}
+
 export function deleteChannel(channelId: string) {
   db().prepare("DELETE FROM messages WHERE channel_id = ?").run(channelId);
   db().prepare("DELETE FROM channels WHERE id = ?").run(channelId);
@@ -380,6 +391,318 @@ export function addRule(input: { dotId: string | null; action: string; decision:
 export function deleteRule(ruleId: string) {
   db().prepare("DELETE FROM rules WHERE id = ?").run(ruleId);
   emit({ type: "rule_deleted", id: ruleId });
+}
+
+// ---------- SparkForge missions ----------
+
+const toSparkForgeMission = (r: Row): SparkForgeMission => ({
+  id: r.id as string, dotId: r.dot_id as string, title: r.title as string, goal: r.goal as string,
+  status: r.status as SparkForgeMission["status"], priority: r.priority as SparkForgeMission["priority"],
+  ownerDotId: (r.owner_dot_id as string | null) ?? null, dueAt: (r.due_at as number | null) ?? null,
+  acceptanceCriteria: JSON.parse((r.acceptance_criteria as string) || "[]"),
+  dependencies: JSON.parse((r.dependencies as string) || "[]"), artifactRefs: JSON.parse((r.artifact_refs as string) || "[]"),
+  risks: JSON.parse((r.risks as string) || "[]"), decisionLog: JSON.parse((r.decision_log as string) || "[]"),
+  nextAction: r.next_action as string, createdAt: r.created_at as number, updatedAt: r.updated_at as number,
+});
+
+export function createSparkForgeMission(input: Omit<SparkForgeMission, "id" | "createdAt" | "updatedAt">): SparkForgeMission {
+  const missionId = id("mission");
+  const timestamp = now();
+  db().prepare(`INSERT INTO sparkforge_missions
+    (id, dot_id, title, goal, status, priority, owner_dot_id, due_at, acceptance_criteria, dependencies, artifact_refs, risks, decision_log, next_action, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(missionId, input.dotId, input.title, input.goal, input.status, input.priority, input.ownerDotId, input.dueAt,
+      JSON.stringify(input.acceptanceCriteria), JSON.stringify(input.dependencies), JSON.stringify(input.artifactRefs),
+      JSON.stringify(input.risks), JSON.stringify(input.decisionLog), input.nextAction, timestamp, timestamp);
+  const mission = getSparkForgeMission(missionId)!;
+  emit({ type: "sparkforge_mission", data: mission });
+  return mission;
+}
+
+export function getSparkForgeMission(missionId: string): SparkForgeMission | null {
+  const r = db().prepare("SELECT * FROM sparkforge_missions WHERE id = ?").get(missionId);
+  return r ? toSparkForgeMission(r as Row) : null;
+}
+
+export function listSparkForgeMissions(status?: SparkForgeMission["status"]): SparkForgeMission[] {
+  const rows = status
+    ? db().prepare("SELECT * FROM sparkforge_missions WHERE status = ? ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END, updated_at DESC").all(status)
+    : db().prepare("SELECT * FROM sparkforge_missions ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END, updated_at DESC").all();
+  return rows.map((r) => toSparkForgeMission(r as Row));
+}
+
+export function updateSparkForgeMission(missionId: string, patch: Partial<Omit<SparkForgeMission, "id" | "dotId" | "createdAt" | "updatedAt">>): SparkForgeMission | null {
+  const jsonFields: Record<string, string> = {
+    acceptanceCriteria: "acceptance_criteria", dependencies: "dependencies", artifactRefs: "artifact_refs", risks: "risks", decisionLog: "decision_log",
+  };
+  const cols: string[] = [];
+  const vals: (string | number | null)[] = [];
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      title: "title", goal: "goal", status: "status", priority: "priority", ownerDotId: "owner_dot_id", dueAt: "due_at", nextAction: "next_action",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" && value !== null ? JSON.stringify(value) : value as string | number | null);
+  }
+  if (!cols.length) return getSparkForgeMission(missionId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE sparkforge_missions SET ${cols.join(", ")} WHERE id = ?`).run(...vals, missionId);
+  const mission = getSparkForgeMission(missionId);
+  if (mission) emit({ type: "sparkforge_mission", data: mission });
+  return mission;
+}
+
+// ---------- SparkForge brand profiles ----------
+
+const toBrandProfile = (r: Row): BrandProfile => ({
+  id: r.id as string,
+  dotId: r.dot_id as string,
+  name: r.name as string,
+  tagline: r.tagline as string,
+  audience: r.audience as string,
+  positioning: r.positioning as string,
+  voice: JSON.parse((r.voice as string) || "[]"),
+  colors: JSON.parse((r.colors as string) || "[]"),
+  fonts: JSON.parse((r.fonts as string) || "{}"),
+  visualDirection: r.visual_direction as string,
+  imageryRules: JSON.parse((r.imagery_rules as string) || "[]"),
+  avoid: JSON.parse((r.avoid as string) || "[]"),
+  status: r.status as BrandProfile["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createBrandProfile(input: Omit<BrandProfile, "id" | "createdAt" | "updatedAt">): BrandProfile {
+  const brandId = id("brand");
+  const timestamp = now();
+  db().prepare(`INSERT INTO brand_profiles
+    (id, dot_id, name, tagline, audience, positioning, voice, colors, fonts, visual_direction, imagery_rules, avoid, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      brandId, input.dotId, input.name, input.tagline, input.audience, input.positioning,
+      JSON.stringify(input.voice), JSON.stringify(input.colors), JSON.stringify(input.fonts),
+      input.visualDirection, JSON.stringify(input.imageryRules), JSON.stringify(input.avoid), input.status, timestamp, timestamp,
+    );
+  const brand = getBrandProfile(brandId)!;
+  emit({ type: "brand_profile", data: brand });
+  return brand;
+}
+
+export function getBrandProfile(brandId: string): BrandProfile | null {
+  const r = db().prepare("SELECT * FROM brand_profiles WHERE id = ?").get(brandId);
+  return r ? toBrandProfile(r as Row) : null;
+}
+
+export function listBrandProfiles(dotId?: string): BrandProfile[] {
+  const rows = dotId
+    ? db().prepare("SELECT * FROM brand_profiles WHERE dot_id = ? ORDER BY updated_at DESC").all(dotId)
+    : db().prepare("SELECT * FROM brand_profiles ORDER BY updated_at DESC").all();
+  return rows.map((r) => toBrandProfile(r as Row));
+}
+
+// ---------- SparkForge listing packs ----------
+
+const toListingPack = (r: Row): ListingPack => ({
+  id: r.id as string,
+  productBlueprintId: r.product_blueprint_id as string,
+  dotId: r.dot_id as string,
+  platform: r.platform as ListingPack["platform"],
+  title: r.title as string,
+  description: r.description as string,
+  tags: JSON.parse((r.tags as string) || "[]"),
+  faq: JSON.parse((r.faq as string) || "[]"),
+  imagePlan: JSON.parse((r.image_plan as string) || "[]"),
+  disclosureNotes: JSON.parse((r.disclosure_notes as string) || "[]"),
+  status: r.status as ListingPack["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createListingPack(input: Omit<ListingPack, "id" | "createdAt" | "updatedAt">): ListingPack {
+  const listingId = id("listing");
+  const timestamp = now();
+  db().prepare(`INSERT INTO listing_packs
+    (id, product_blueprint_id, dot_id, platform, title, description, tags, faq, image_plan, disclosure_notes, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      listingId, input.productBlueprintId, input.dotId, input.platform, input.title, input.description,
+      JSON.stringify(input.tags), JSON.stringify(input.faq), JSON.stringify(input.imagePlan),
+      JSON.stringify(input.disclosureNotes), input.status, timestamp, timestamp,
+    );
+  const pack = getListingPack(listingId)!;
+  emit({ type: "listing_pack", data: pack });
+  return pack;
+}
+
+export function getListingPack(listingId: string): ListingPack | null {
+  const r = db().prepare("SELECT * FROM listing_packs WHERE id = ?").get(listingId);
+  return r ? toListingPack(r as Row) : null;
+}
+
+export function listListingPacks(productBlueprintId?: string): ListingPack[] {
+  const rows = productBlueprintId
+    ? db().prepare("SELECT * FROM listing_packs WHERE product_blueprint_id = ? ORDER BY updated_at DESC").all(productBlueprintId)
+    : db().prepare("SELECT * FROM listing_packs ORDER BY updated_at DESC").all();
+  return rows.map((r) => toListingPack(r as Row));
+}
+
+// ---------- SparkForge product blueprints ----------
+
+const toBlueprint = (r: Row): ProductBlueprint => ({
+  id: r.id as string,
+  opportunityId: r.opportunity_id as string,
+  dotId: r.dot_id as string,
+  name: r.name as string,
+  promise: r.promise as string,
+  format: r.format as string,
+  contents: JSON.parse((r.contents as string) || "[]"),
+  variants: JSON.parse((r.variants as string) || "[]"),
+  price: r.price as string,
+  productionRequirements: JSON.parse((r.production_requirements as string) || "[]"),
+  creativeBrief: r.creative_brief as string,
+  listingAngle: r.listing_angle as string,
+  status: r.status as ProductBlueprint["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createProductBlueprint(input: Omit<ProductBlueprint, "id" | "createdAt" | "updatedAt">): ProductBlueprint {
+  const blueprintId = id("prod");
+  const timestamp = now();
+  db().prepare(`INSERT INTO product_blueprints
+    (id, opportunity_id, dot_id, name, promise, format, contents, variants, price, production_requirements, creative_brief, listing_angle, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      blueprintId, input.opportunityId, input.dotId, input.name, input.promise, input.format,
+      JSON.stringify(input.contents), JSON.stringify(input.variants), input.price, JSON.stringify(input.productionRequirements),
+      input.creativeBrief, input.listingAngle, input.status, timestamp, timestamp,
+    );
+  const blueprint = getProductBlueprint(blueprintId)!;
+  emit({ type: "product_blueprint", data: blueprint });
+  return blueprint;
+}
+
+export function getProductBlueprint(blueprintId: string): ProductBlueprint | null {
+  const r = db().prepare("SELECT * FROM product_blueprints WHERE id = ?").get(blueprintId);
+  return r ? toBlueprint(r as Row) : null;
+}
+
+export function listProductBlueprints(opportunityId?: string): ProductBlueprint[] {
+  const rows = opportunityId
+    ? db().prepare("SELECT * FROM product_blueprints WHERE opportunity_id = ? ORDER BY updated_at DESC").all(opportunityId)
+    : db().prepare("SELECT * FROM product_blueprints ORDER BY updated_at DESC").all();
+  return rows.map((r) => toBlueprint(r as Row));
+}
+
+export function updateProductBlueprint(blueprintId: string, patch: Partial<Omit<ProductBlueprint, "id" | "opportunityId" | "dotId" | "createdAt" | "updatedAt">>) {
+  const jsonFields: Record<string, string> = {
+    contents: "contents", variants: "variants", productionRequirements: "production_requirements",
+  };
+  const cols: string[] = [];
+  const vals: (string | number)[] = [];
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      name: "name", promise: "promise", format: "format", price: "price",
+      creativeBrief: "creative_brief", listingAngle: "listing_angle", status: "status",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" ? JSON.stringify(value) : (value as string | number));
+  }
+  if (!cols.length) return getProductBlueprint(blueprintId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE product_blueprints SET ${cols.join(", ")} WHERE id = ?`).run(...vals, blueprintId);
+  const blueprint = getProductBlueprint(blueprintId);
+  if (blueprint) emit({ type: "product_blueprint", data: blueprint });
+  return blueprint;
+}
+
+// ---------- SparkForge opportunity briefs ----------
+
+const toOpportunity = (r: Row): OpportunityBrief => ({
+  id: r.id as string,
+  dotId: r.dot_id as string,
+  query: r.query as string,
+  niche: r.niche as string,
+  targetBuyer: r.target_buyer as string,
+  demandSignals: JSON.parse((r.demand_signals as string) || "[]"),
+  competitors: JSON.parse((r.competitors as string) || "[]"),
+  buyerLanguage: JSON.parse((r.buyer_language as string) || "[]"),
+  gaps: JSON.parse((r.gaps as string) || "[]"),
+  pricing: r.pricing as string,
+  executionDifficulty: r.execution_difficulty as string,
+  score: Number(r.score),
+  recommendation: r.recommendation as string,
+  sources: JSON.parse((r.sources as string) || "[]"),
+  status: r.status as OpportunityBrief["status"],
+  createdAt: r.created_at as number,
+  updatedAt: r.updated_at as number,
+});
+
+export function createOpportunityBrief(input: Omit<OpportunityBrief, "id" | "createdAt" | "updatedAt">): OpportunityBrief {
+  const opportunityId = id("opp");
+  const timestamp = now();
+  db().prepare(`INSERT INTO opportunity_briefs
+    (id, dot_id, query, niche, target_buyer, demand_signals, competitors, buyer_language, gaps, pricing, execution_difficulty, score, recommendation, sources, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(
+      opportunityId, input.dotId, input.query, input.niche, input.targetBuyer,
+      JSON.stringify(input.demandSignals), JSON.stringify(input.competitors), JSON.stringify(input.buyerLanguage),
+      JSON.stringify(input.gaps), input.pricing, input.executionDifficulty, input.score, input.recommendation,
+      JSON.stringify(input.sources), input.status, timestamp, timestamp,
+    );
+  const brief = getOpportunityBrief(opportunityId)!;
+  emit({ type: "opportunity", data: brief });
+  return brief;
+}
+
+export function getOpportunityBrief(opportunityId: string): OpportunityBrief | null {
+  const r = db().prepare("SELECT * FROM opportunity_briefs WHERE id = ?").get(opportunityId);
+  return r ? toOpportunity(r as Row) : null;
+}
+
+export function listOpportunityBriefs(dotId?: string): OpportunityBrief[] {
+  const rows = dotId
+    ? db().prepare("SELECT * FROM opportunity_briefs WHERE dot_id = ? ORDER BY updated_at DESC").all(dotId)
+    : db().prepare("SELECT * FROM opportunity_briefs ORDER BY updated_at DESC").all();
+  return rows.map((r) => toOpportunity(r as Row));
+}
+
+export function updateOpportunityBrief(opportunityId: string, patch: Partial<Omit<OpportunityBrief, "id" | "dotId" | "createdAt" | "updatedAt">>) {
+  const cols: string[] = [];
+  const vals: (string | number)[] = [];
+  const jsonFields: Record<string, string> = {
+    demandSignals: "demand_signals", competitors: "competitors", buyerLanguage: "buyer_language", gaps: "gaps", sources: "sources",
+  };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      query: "query", niche: "niche", targetBuyer: "target_buyer", pricing: "pricing",
+      executionDifficulty: "execution_difficulty", score: "score", recommendation: "recommendation", status: "status",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" ? JSON.stringify(value) : (value as string | number));
+  }
+  if (!cols.length) return getOpportunityBrief(opportunityId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE opportunity_briefs SET ${cols.join(", ")} WHERE id = ?`).run(...vals, opportunityId);
+  const brief = getOpportunityBrief(opportunityId);
+  if (brief) emit({ type: "opportunity", data: brief });
+  return brief;
+}
+
+export function updateOpportunityStatus(opportunityId: string, status: OpportunityBrief["status"]) {
+  db().prepare("UPDATE opportunity_briefs SET status = ?, updated_at = ? WHERE id = ?").run(status, now(), opportunityId);
+  const brief = getOpportunityBrief(opportunityId);
+  if (brief) emit({ type: "opportunity", data: brief });
+  return brief;
 }
 
 // ---------- memories ----------

@@ -7,7 +7,7 @@ import { credentialFor } from "../vault";
 import { emit } from "../bus";
 import * as composio from "../composio";
 import * as files from "../files";
-import type { Dot, RuleDecision } from "@/lib/types";
+import type { Dot, RuleDecision, SparkForgeMission } from "@/lib/types";
 
 export type ToolCtx = { dot: Dot; signal: AbortSignal; depth: number };
 
@@ -49,6 +49,132 @@ export function setConsult(fn: typeof consultImpl) {
 
 export const TOOLS: ToolDef[] = [
   {
+    name: "get_opportunity_brief",
+    label: "Reading opportunity evidence",
+    description: "Read a saved SparkForge opportunity brief by id. Use this to ground product and marketing decisions in Scout's recorded evidence rather than relying on chat summaries.",
+    parameters: obj({ opportunity_id: str("Saved SparkForge opportunity brief id") }),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Scout", "Forge", "Operator", "Canvas", "Listing", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge opportunity briefs.";
+      return repo.getOpportunityBrief(s(a.opportunity_id)) ? null : `No opportunity brief found for ${s(a.opportunity_id)}.`;
+    },
+    execute: async (a) => {
+      const brief = repo.getOpportunityBrief(s(a.opportunity_id));
+      return brief ? JSON.stringify(brief, null, 2) : "Opportunity brief not found.";
+    },
+  },
+  {
+    name: "get_product_blueprint",
+    label: "Reading product blueprint",
+    description: "Read a saved SparkForge product blueprint by id. Canvas and Listing should inspect the canonical blueprint before preparing assets or copy.",
+    parameters: obj({ product_blueprint_id: str("Saved SparkForge product blueprint id") }),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Forge", "Canvas", "Listing", "Operator", "Pulse", "Audience"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge product blueprints.";
+      return repo.getProductBlueprint(s(a.product_blueprint_id)) ? null : `No product blueprint found for ${s(a.product_blueprint_id)}.`;
+    },
+    execute: async (a) => {
+      const blueprint = repo.getProductBlueprint(s(a.product_blueprint_id));
+      return blueprint ? JSON.stringify(blueprint, null, 2) : "Product blueprint not found.";
+    },
+  },
+  {
+    name: "get_brand_profile",
+    label: "Reading brand system",
+    description: "Read a saved SparkForge brand profile by id so the workforce can check current positioning, voice, colors and visual rules before producing assets.",
+    parameters: obj({ brand_profile_id: str("Saved SparkForge brand profile id") }),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Canvas", "Listing", "Pulse", "Audience", "Operator"].includes(ctx.dot.name)) return "This agent is not allowed to read SparkForge brand profiles.";
+      return repo.getBrandProfile(s(a.brand_profile_id)) ? null : `No brand profile found for ${s(a.brand_profile_id)}.`;
+    },
+    execute: async (a) => {
+      const brand = repo.getBrandProfile(s(a.brand_profile_id));
+      return brand ? JSON.stringify(brand, null, 2) : "Brand profile not found.";
+    },
+  },
+  {
+    name: "list_sparkforge_missions",
+    label: "Reviewing mission board",
+    description: "List persistent SparkForge missions, ordered by priority. Use this before planning new work to avoid losing track of active, blocked or completed commitments.",
+    parameters: obj({ status: { type: ["string", "null"], enum: ["planned", "active", "blocked", "completed", "cancelled", null], description: "Optional mission status filter" } }, ["status"]),
+    precheck: async (_a, ctx) => ["Chief of Staff", "Operator"].includes(ctx.dot.name) ? null : "Only Chief of Staff and Operator may access the mission board.",
+    execute: async (a) => JSON.stringify(repo.listSparkForgeMissions(s(a.status) || undefined), null, 2),
+  },
+  {
+    name: "create_sparkforge_mission",
+    label: "Creating a tracked mission",
+    description: "Create a persistent SparkForge mission with owner, priority, due date, acceptance criteria, dependencies, artifacts, risks and next action. Do this when the founder gives a substantial goal that needs tracking.",
+    parameters: obj({
+      title: str("Short mission title"),
+      goal: str("Outcome this mission must achieve"),
+      status: { type: "string", enum: ["planned", "active", "blocked", "completed", "cancelled"] },
+      priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
+      owner_dot_id: nullableStr("Responsible specialist dot id, or null if unassigned"),
+      due_at: { type: ["number", "null"], description: "Due time as Unix milliseconds, or null" },
+      acceptance_criteria: { type: "array", items: str("Measurable condition that proves completion") },
+      dependencies: { type: "array", items: str("Blocking mission id or dependency description") },
+      artifact_refs: { type: "array", items: str("Saved artifact id or link") },
+      risks: { type: "array", items: str("Known risk or unresolved uncertainty") },
+      decision_log: { type: "array", items: str("Decision and brief rationale") },
+      next_action: str("Single concrete next step"),
+    }),
+    precheck: async (_a, ctx) => ["Chief of Staff", "Operator"].includes(ctx.dot.name) ? null : "Only Chief of Staff and Operator may create missions.",
+    execute: async (a, ctx) => {
+      const mission = repo.createSparkForgeMission({
+        dotId: ctx.dot.id, title: s(a.title), goal: s(a.goal),
+        status: s(a.status) as SparkForgeMission["status"], priority: s(a.priority) as SparkForgeMission["priority"],
+        ownerDotId: a.owner_dot_id == null ? null : s(a.owner_dot_id),
+        dueAt: typeof a.due_at === "number" ? a.due_at : null,
+        acceptanceCriteria: Array.isArray(a.acceptance_criteria) ? a.acceptance_criteria.map(s) : [],
+        dependencies: Array.isArray(a.dependencies) ? a.dependencies.map(s) : [],
+        artifactRefs: Array.isArray(a.artifact_refs) ? a.artifact_refs.map(s) : [],
+        risks: Array.isArray(a.risks) ? a.risks.map(s) : [],
+        decisionLog: Array.isArray(a.decision_log) ? a.decision_log.map(s) : [],
+        nextAction: s(a.next_action),
+      });
+      return JSON.stringify(mission, null, 2);
+    },
+  },
+  {
+    name: "update_sparkforge_mission",
+    label: "Updating mission status",
+    description: "Update fields on an existing SparkForge mission. Only pass fields that changed. Record real progress, blockers, decisions and artifact ids; never mark a mission complete without verifying its acceptance criteria.",
+    parameters: obj({
+      mission_id: str("Existing SparkForge mission id"),
+      title: str("Updated title"),
+      goal: str("Updated outcome"),
+      status: { type: "string", enum: ["planned", "active", "blocked", "completed", "cancelled"] },
+      priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
+      owner_dot_id: nullableStr("Responsible specialist dot id, or null to unassign"),
+      due_at: { type: ["number", "null"], description: "Due time as Unix milliseconds, or null" },
+      acceptance_criteria: { type: "array", items: str("Measurable condition that proves completion") },
+      dependencies: { type: "array", items: str("Blocking mission id or dependency description") },
+      artifact_refs: { type: "array", items: str("Saved artifact id or link") },
+      risks: { type: "array", items: str("Known risk or unresolved uncertainty") },
+      decision_log: { type: "array", items: str("Decision and brief rationale") },
+      next_action: str("Single concrete next step"),
+    }, ["mission_id"]),
+    precheck: async (a, ctx) => {
+      if (!["Chief of Staff", "Operator"].includes(ctx.dot.name)) return "Only Chief of Staff and Operator may update missions.";
+      return repo.getSparkForgeMission(s(a.mission_id)) ? null : "Mission not found.";
+    },
+    execute: async (a) => {
+      const patch: Partial<Omit<SparkForgeMission, "id" | "dotId" | "createdAt" | "updatedAt">> = {};
+      if (a.title !== undefined) patch.title = s(a.title);
+      if (a.goal !== undefined) patch.goal = s(a.goal);
+      if (a.status !== undefined) patch.status = s(a.status) as SparkForgeMission["status"];
+      if (a.priority !== undefined) patch.priority = s(a.priority) as SparkForgeMission["priority"];
+      if (a.owner_dot_id !== undefined) patch.ownerDotId = a.owner_dot_id == null ? null : s(a.owner_dot_id);
+      if (a.due_at !== undefined) patch.dueAt = typeof a.due_at === "number" ? a.due_at : null;
+      if (a.acceptance_criteria !== undefined) patch.acceptanceCriteria = Array.isArray(a.acceptance_criteria) ? a.acceptance_criteria.map(s) : [];
+      if (a.dependencies !== undefined) patch.dependencies = Array.isArray(a.dependencies) ? a.dependencies.map(s) : [];
+      if (a.artifact_refs !== undefined) patch.artifactRefs = Array.isArray(a.artifact_refs) ? a.artifact_refs.map(s) : [];
+      if (a.risks !== undefined) patch.risks = Array.isArray(a.risks) ? a.risks.map(s) : [];
+      if (a.decision_log !== undefined) patch.decisionLog = Array.isArray(a.decision_log) ? a.decision_log.map(s) : [];
+      if (a.next_action !== undefined) patch.nextAction = s(a.next_action);
+      const mission = repo.updateSparkForgeMission(s(a.mission_id), patch);
+      return mission ? JSON.stringify(mission, null, 2) : "Mission not found.";
+    },
+  },
+  {
     name: "run_command",
     label: "Running commands",
     description: "Run a bash command on your own computer (Linux; the working directory is your persistent workspace). Use it for scripts, data work, downloads, installing packages, etc.",
@@ -87,6 +213,165 @@ export const TOOLS: ToolDef[] = [
       repo.addMessage({ dotId: ctx.dot.id, role: "dot", text, attachments: [att] });
       emit({ type: "notify", dotId: ctx.dot.id, title: `${ctx.dot.name} sent ${att.name}`, body: text.slice(0, 160) });
       return `Shared ${att.name} (${att.size} bytes) with the user. Don't repeat its contents unless asked.`;
+    },
+  },
+  {
+    name: "save_listing_pack",
+    label: "Saving marketplace listing",
+    description: "Persist a truthful marketplace listing draft from a SparkForge product blueprint. Only Listing should use this tool. Publishing is a separate approval-gated action.",
+    parameters: obj({
+      product_blueprint_id: str("The product blueprint id"),
+      platform: { type: "string", enum: ["etsy", "gumroad", "generic"], description: "Target marketplace" },
+      title: str("Buyer-facing listing title"),
+      description: str("Complete listing description"),
+      tags: { type: "array", items: { type: "string" }, description: "Keyword/tag candidates grounded in observed buyer language" },
+      faq: { type: "array", items: { type: "string" }, description: "Frequently asked questions and answers" },
+      image_plan: { type: "array", items: { type: "string" }, description: "Listing image sequence" },
+      disclosure_notes: { type: "array", items: { type: "string" }, description: "AI, licensing, commercial-use or other disclosures that need to be shown" },
+    }),
+    precheck: async (a, ctx) => {
+      if (ctx.dot.name !== "Listing") return "Only SparkForge Listing may save listing packs.";
+      const product = repo.getProductBlueprint(s(a.product_blueprint_id));
+      if (!product) return `Product blueprint ${s(a.product_blueprint_id)} does not exist.`;
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const pack = repo.createListingPack({
+        productBlueprintId: s(a.product_blueprint_id),
+        dotId: ctx.dot.id,
+        platform: s(a.platform) as "etsy" | "gumroad" | "generic",
+        title: s(a.title),
+        description: s(a.description),
+        tags: Array.isArray(a.tags) ? a.tags.map(s) : [],
+        faq: Array.isArray(a.faq) ? a.faq.map(s) : [],
+        imagePlan: Array.isArray(a.image_plan) ? a.image_plan.map(s) : [],
+        disclosureNotes: Array.isArray(a.disclosure_notes) ? a.disclosure_notes.map(s) : [],
+        status: "ready",
+      });
+      return `Saved listing pack ${pack.id} for ${pack.platform}. Publishing is still approval-gated.`;
+    },
+  },
+  {
+    name: "save_brand_profile",
+    label: "Saving brand system",
+    description: "Persist the canonical SparkForge brand system used by Creative, Listing, Growth and Audience. Only Canvas or Operator may save it. This is a planning/identity artifact, not an external publishing action.",
+    parameters: obj({
+      name: str("Brand name"),
+      tagline: str("Short brand promise/tagline"),
+      audience: str("Primary target audience"),
+      positioning: str("One-paragraph positioning"),
+      voice: { type: "array", items: { type: "string" }, description: "3-6 voice traits with examples" },
+      colors: { type: "array", items: { type: "object", properties: { name: { type: "string" }, hex: { type: "string" }, role: { type: "string" } }, required: ["name", "hex", "role"], additionalProperties: false } },
+      fonts: { type: "object", properties: { heading: { type: "string" }, body: { type: "string" }, accent: { type: ["string", "null"] } }, required: ["heading", "body", "accent"], additionalProperties: false },
+      visual_direction: str("Visual direction for products, mockups and marketing"),
+      imagery_rules: { type: "array", items: { type: "string" } },
+      avoid: { type: "array", items: { type: "string" } },
+    }),
+    precheck: async (_a, ctx) => {
+      if (!["Canvas", "Operator"].includes(ctx.dot.name)) return "Only SparkForge Canvas or Operator may save brand profiles.";
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const brand = repo.createBrandProfile({
+        dotId: ctx.dot.id,
+        name: s(a.name),
+        tagline: s(a.tagline),
+        audience: s(a.audience),
+        positioning: s(a.positioning),
+        voice: Array.isArray(a.voice) ? a.voice.map(s) : [],
+        colors: Array.isArray(a.colors) ? a.colors as { name: string; hex: string; role: string }[] : [],
+        fonts: (a.fonts && typeof a.fonts === "object") ? a.fonts as { heading: string; body: string; accent?: string } : { heading: "Geist Sans", body: "Geist Sans" },
+        visualDirection: s(a.visual_direction),
+        imageryRules: Array.isArray(a.imagery_rules) ? a.imagery_rules.map(s) : [],
+        avoid: Array.isArray(a.avoid) ? a.avoid.map(s) : [],
+        status: "ready",
+      });
+      return `Saved brand profile ${brand.id}: ${brand.name}. Creative and Growth can now use this system.`;
+    },
+  },
+  {
+    name: "save_product_blueprint",
+    label: "Saving product blueprint",
+    description: "Persist a production-ready SparkForge digital product blueprint after Forge validates an opportunity. Only Forge should use this tool. Do not claim a product exists or is launched; this is a planning artifact.",
+    parameters: obj({
+      opportunity_id: str("The validated opportunity id"),
+      name: str("Product name"),
+      promise: str("Clear buyer-facing promise"),
+      format: str("Primary product format and file types"),
+      contents: { type: "array", items: { type: "string" }, description: "What the buyer receives" },
+      variants: { type: "array", items: { type: "string" }, description: "Optional variants or bundle upgrades" },
+      price: str("Test price and rationale"),
+      production_requirements: { type: "array", items: { type: "string" }, description: "Production specifications and constraints" },
+      creative_brief: str("Visual direction for Canvas"),
+      listing_angle: str("Marketplace positioning for Listing"),
+    }),
+    precheck: async (a, ctx) => {
+      if (ctx.dot.name !== "Forge") return "Only SparkForge Forge may save product blueprints.";
+      const opportunity = repo.getOpportunityBrief(s(a.opportunity_id));
+      if (!opportunity) return `Opportunity ${s(a.opportunity_id)} does not exist.`;
+      if (opportunity.status !== "validated" && opportunity.status !== "building") return "Opportunity must be validated before Forge creates a product blueprint.";
+      return null;
+    },
+    execute: async (a, ctx) => {
+      const opportunityId = s(a.opportunity_id);
+      const blueprint = repo.createProductBlueprint({
+        opportunityId,
+        dotId: ctx.dot.id,
+        name: s(a.name),
+        promise: s(a.promise),
+        format: s(a.format),
+        contents: Array.isArray(a.contents) ? a.contents.map(s) : [],
+        variants: Array.isArray(a.variants) ? a.variants.map(s) : [],
+        price: s(a.price),
+        productionRequirements: Array.isArray(a.production_requirements) ? a.production_requirements.map(s) : [],
+        creativeBrief: s(a.creative_brief),
+        listingAngle: s(a.listing_angle),
+        status: "ready",
+      });
+      repo.updateOpportunityStatus(opportunityId, "building");
+      return `Saved product blueprint ${blueprint.id}: ${blueprint.name}. Canvas and Listing can now use it. Publishing remains approval-gated.`;
+    },
+  },
+  {
+    name: "save_opportunity_brief",
+    label: "Saving opportunity research",
+    description: "Persist a structured SparkForge opportunity brief after completing evidence-based marketplace research. Only SparkForge Scout should use this tool. Never invent demand, sales, ranking or search-volume data.",
+    parameters: obj({
+      opportunity_id: str("The SparkForge opportunity id supplied in the mission"),
+      niche: str("The researched niche"),
+      target_buyer: str("The primary buyer"),
+      demand_signals: { type: "array", items: { type: "string" }, description: "Observed demand signals; facts only" },
+      competitors: { type: "array", items: { type: "object", properties: { name: { type: "string" }, price: { type: ["string", "null"] }, url: { type: ["string", "null"] }, notes: { type: "string" } }, required: ["name", "price", "url", "notes"], additionalProperties: false } },
+      buyer_language: { type: "array", items: { type: "string" }, description: "Repeated buyer language or pain points actually observed" },
+      gaps: { type: "array", items: { type: "string" }, description: "Evidence-backed gaps or differentiation opportunities" },
+      pricing: str("Recommended test price and positioning rationale"),
+      execution_difficulty: str("Low, medium or high with a short rationale"),
+      score: { type: "integer", minimum: 0, maximum: 100, description: "Opportunity score from 0 to 100" },
+      recommendation: str("One concrete product or bundle recommendation and why it wins"),
+      sources: { type: "array", items: { type: "object", properties: { title: { type: "string" }, url: { type: "string" }, observedAt: { type: ["string", "null"] } }, required: ["title", "url", "observedAt"], additionalProperties: false } },
+    }),
+    precheck: async (a, ctx) => {
+      if (!["Scout", "Operator"].includes(ctx.dot.name)) return "Only SparkForge Scout or Operator may save opportunity briefs.";
+      if (!repo.getOpportunityBrief(s(a.opportunity_id))) return `Opportunity ${s(a.opportunity_id)} does not exist.`;
+      return null;
+    },
+    execute: async (a) => {
+      const id = s(a.opportunity_id);
+      const brief = repo.updateOpportunityBrief(id, {
+        niche: s(a.niche),
+        targetBuyer: s(a.target_buyer),
+        demandSignals: Array.isArray(a.demand_signals) ? a.demand_signals.map(s) : [],
+        competitors: Array.isArray(a.competitors) ? a.competitors as { name: string; price?: string; url?: string; notes: string }[] : [],
+        buyerLanguage: Array.isArray(a.buyer_language) ? a.buyer_language.map(s) : [],
+        gaps: Array.isArray(a.gaps) ? a.gaps.map(s) : [],
+        pricing: s(a.pricing),
+        executionDifficulty: s(a.execution_difficulty),
+        score: Math.max(0, Math.min(100, Number(a.score) || 0)),
+        recommendation: s(a.recommendation),
+        sources: Array.isArray(a.sources) ? a.sources as { title: string; url: string; observedAt?: string }[] : [],
+        status: "validated",
+      });
+      return brief ? `Saved validated opportunity brief ${brief.id} with score ${brief.score}/100. Pass the brief to Forge for product design.` : "Unable to save opportunity brief.";
     },
   },
   {

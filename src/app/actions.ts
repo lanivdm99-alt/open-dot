@@ -14,6 +14,7 @@ import * as composio from "@/server/composio";
 import * as voice from "@/server/voice";
 import { autoTitle } from "@/server/titles";
 import type { Attachment, Dot, Look, RuleDecision, TriggerApp, TriggerType } from "@/lib/types";
+import { ensureSparkForgeAgents } from "@/server/sparkforge/agents";
 
 // All mutations go through here; the UI updates from the event stream, not from return values.
 
@@ -37,6 +38,86 @@ export async function deleteDot(dotId: string) {
   await computer.destroy(dotId);
   await triggers.removeTriggersFor(dotId);
   repo.deleteDot(dotId);
+}
+
+export async function startSparkForgeOpportunity(query: string): Promise<string | null> {
+  const niche = query.trim();
+  if (!niche) return null;
+
+  ensureSparkForgeAgents();
+  const scout = repo.findDotByName("Scout");
+  if (!scout) throw new Error("SparkForge Scout is not available.");
+
+  const opportunity = repo.createOpportunityBrief({
+    dotId: scout.id,
+    query: niche,
+    niche: niche,
+    targetBuyer: "",
+    demandSignals: [],
+    competitors: [],
+    buyerLanguage: [],
+    gaps: [],
+    pricing: "",
+    executionDifficulty: "",
+    score: 0,
+    recommendation: "",
+    sources: [],
+    status: "researching",
+  });
+
+  const conv = repo.createConversation(scout.id);
+  const mission = `SPARKFORGE OPPORTUNITY MISSION
+
+Opportunity ID: ${opportunity.id}
+Research target: ${niche}
+
+Run a current, evidence-first marketplace opportunity scan across Etsy, Gumroad and relevant web sources.
+
+Deliverable contract:
+1. Exact niche/query and target buyer.
+2. Current demand signals you can actually observe.
+3. 5-10 representative competing offers with observable prices when available.
+4. Repeated buyer language, pain points and unmet needs.
+5. Competition assessment and meaningful differentiation gaps.
+6. Price positioning and monetization hypothesis.
+7. Execution difficulty and estimated production scope.
+8. Opportunity score 0-100 with a short scoring rationale.
+9. One concrete digital product/bundle recommendation.
+10. Sources and timestamps. Clearly label observations vs inference. Never invent sales, search volume, rankings or customer data.
+
+When the research is complete, call save_opportunity_brief with Opportunity ID ${opportunity.id}. The saved brief is the source of truth for the next agents. Only after it is saved should you hand the completed opportunity brief to Forge using the message_dot tool. Tell Forge to turn the validated opportunity into a concrete product specification. Do not publish, purchase, or make external changes. Return the final opportunity brief in this conversation as well.`;
+
+  runtime.sendMessage(scout.id, mission, [], conv.id);
+  void autoTitle(conv.id, `Opportunity · ${niche}`);
+  return conv.id;
+}
+
+export async function startSparkForgeBrand(input: { name: string; audience: string; category: string }): Promise<string | null> {
+  const name = input.name.trim();
+  const audience = input.audience.trim();
+  const category = input.category.trim();
+  if (!name || !audience || !category) return null;
+
+  ensureSparkForgeAgents();
+  const canvas = repo.findDotByName("Canvas");
+  if (!canvas) throw new Error("SparkForge Canvas is not available.");
+
+  const conv = repo.createConversation(canvas.id);
+  const mission = `SPARKFORGE BRAND SYSTEM MISSION
+
+Brand name: ${name}
+Primary audience: ${audience}
+Category: ${category}
+
+Build the canonical brand system for this creator business. Define positioning, tagline, voice, color roles, typography, visual direction, imagery rules and a concise avoid-list. Make choices that are differentiated but usable across digital products, marketplace listings, social creative and landing pages.
+
+Do not copy another brand. Do not invent customer research. If evidence is needed, use current sources and distinguish observation from inference.
+
+When the system is coherent, call save_brand_profile exactly once. Do not publish anything externally. Return the completed brand system in this conversation.`;
+
+  runtime.sendMessage(canvas.id, mission, [], conv.id);
+  void autoTitle(conv.id, `Brand · ${name}`);
+  return conv.id;
 }
 
 export async function sendMessage(dotId: string, text: string, attachments: Attachment[] = [], conversationId?: string) {
