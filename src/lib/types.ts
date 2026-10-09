@@ -150,6 +150,25 @@ export type ProductBlueprint = {
   updatedAt: number;
 };
 
+export type SparkForgeMission = {
+  id: string;
+  dotId: string;
+  title: string;
+  goal: string;
+  status: "planned" | "active" | "blocked" | "completed" | "cancelled";
+  priority: "low" | "normal" | "high" | "urgent";
+  ownerDotId: string | null;
+  dueAt: number | null;
+  acceptanceCriteria: string[];
+  dependencies: string[];
+  artifactRefs: string[];
+  risks: string[];
+  decisionLog: string[];
+  nextAction: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type ListingPack = {
   id: string;
   productBlueprintId: string;
@@ -267,4 +286,4 @@ export type ServerEvent =
   | { type: "opportunity"; data: OpportunityBrief }
   | { type: "brand_profile"; data: BrandProfile }
   | { type: "product_blueprint"; data: ProductBlueprint }
-  | { type: "listing_pack"; data: ListingPack };
+  | { type: "listing_pack"; data: ListingPack }\n  | { type: "sparkforge_mission"; data: SparkForgeMission };
