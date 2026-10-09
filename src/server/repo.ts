@@ -4,7 +4,7 @@ import { emit } from "./bus";
 import { Cron } from "croner";
 import { normalizeLook } from "@/lib/look";
 import type {
-  AppTrigger, Attachment, BrandProfile, CardData, Channel, Conversation, Dot, DotStatus, Look, ListingPack, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill,
+  AppTrigger, Attachment, BrandProfile, CardData, Channel, Conversation, Dot, DotStatus, Look, ListingPack, Memory, Message, MessageRole, OpportunityBrief, PasswordEntry, ProductBlueprint, Routine, Rule, RuleDecision, Skill, SparkForgeMission,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -391,6 +391,68 @@ export function addRule(input: { dotId: string | null; action: string; decision:
 export function deleteRule(ruleId: string) {
   db().prepare("DELETE FROM rules WHERE id = ?").run(ruleId);
   emit({ type: "rule_deleted", id: ruleId });
+}
+
+// ---------- SparkForge missions ----------
+
+const toSparkForgeMission = (r: Row): SparkForgeMission => ({
+  id: r.id as string, dotId: r.dot_id as string, title: r.title as string, goal: r.goal as string,
+  status: r.status as SparkForgeMission["status"], priority: r.priority as SparkForgeMission["priority"],
+  ownerDotId: (r.owner_dot_id as string | null) ?? null, dueAt: (r.due_at as number | null) ?? null,
+  acceptanceCriteria: JSON.parse((r.acceptance_criteria as string) || "[]"),
+  dependencies: JSON.parse((r.dependencies as string) || "[]"), artifactRefs: JSON.parse((r.artifact_refs as string) || "[]"),
+  risks: JSON.parse((r.risks as string) || "[]"), decisionLog: JSON.parse((r.decision_log as string) || "[]"),
+  nextAction: r.next_action as string, createdAt: r.created_at as number, updatedAt: r.updated_at as number,
+});
+
+export function createSparkForgeMission(input: Omit<SparkForgeMission, "id" | "createdAt" | "updatedAt">): SparkForgeMission {
+  const missionId = id("mission");
+  const timestamp = now();
+  db().prepare(`INSERT INTO sparkforge_missions
+    (id, dot_id, title, goal, status, priority, owner_dot_id, due_at, acceptance_criteria, dependencies, artifact_refs, risks, decision_log, next_action, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(missionId, input.dotId, input.title, input.goal, input.status, input.priority, input.ownerDotId, input.dueAt,
+      JSON.stringify(input.acceptanceCriteria), JSON.stringify(input.dependencies), JSON.stringify(input.artifactRefs),
+      JSON.stringify(input.risks), JSON.stringify(input.decisionLog), input.nextAction, timestamp, timestamp);
+  const mission = getSparkForgeMission(missionId)!;
+  emit({ type: "sparkforge_mission", data: mission });
+  return mission;
+}
+
+export function getSparkForgeMission(missionId: string): SparkForgeMission | null {
+  const r = db().prepare("SELECT * FROM sparkforge_missions WHERE id = ?").get(missionId);
+  return r ? toSparkForgeMission(r as Row) : null;
+}
+
+export function listSparkForgeMissions(status?: SparkForgeMission["status"]): SparkForgeMission[] {
+  const rows = status
+    ? db().prepare("SELECT * FROM sparkforge_missions WHERE status = ? ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END, updated_at DESC").all(status)
+    : db().prepare("SELECT * FROM sparkforge_missions ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END, updated_at DESC").all();
+  return rows.map((r) => toSparkForgeMission(r as Row));
+}
+
+export function updateSparkForgeMission(missionId: string, patch: Partial<Omit<SparkForgeMission, "id" | "dotId" | "createdAt" | "updatedAt">>): SparkForgeMission | null {
+  const jsonFields: Record<string, string> = {
+    acceptanceCriteria: "acceptance_criteria", dependencies: "dependencies", artifactRefs: "artifact_refs", risks: "risks", decisionLog: "decision_log",
+  };
+  const cols: string[] = [];
+  const vals: (string | number | null)[] = [];
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const col = jsonFields[key] ?? ({
+      title: "title", goal: "goal", status: "status", priority: "priority", ownerDotId: "owner_dot_id", dueAt: "due_at", nextAction: "next_action",
+    } as Record<string, string>)[key];
+    if (!col) continue;
+    cols.push(`${col} = ?`);
+    vals.push(typeof value === "object" && value !== null ? JSON.stringify(value) : value as string | number | null);
+  }
+  if (!cols.length) return getSparkForgeMission(missionId);
+  cols.push("updated_at = ?");
+  vals.push(now());
+  db().prepare(`UPDATE sparkforge_missions SET ${cols.join(", ")} WHERE id = ?`).run(...vals, missionId);
+  const mission = getSparkForgeMission(missionId);
+  if (mission) emit({ type: "sparkforge_mission", data: mission });
+  return mission;
 }
 
 // ---------- SparkForge brand profiles ----------
