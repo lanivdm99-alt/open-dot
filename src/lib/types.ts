@@ -287,4 +287,5 @@ export type ServerEvent =
   | { type: "opportunity"; data: OpportunityBrief }
   | { type: "brand_profile"; data: BrandProfile }
   | { type: "product_blueprint"; data: ProductBlueprint }
-  | { type: "listing_pack"; data: ListingPack }\n  | { type: "sparkforge_mission"; data: SparkForgeMission };
+  | { type: "listing_pack"; data: ListingPack }
+  | { type: "sparkforge_mission"; data: SparkForgeMission };
