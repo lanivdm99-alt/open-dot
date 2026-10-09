@@ -265,6 +265,6 @@ export type ServerEvent =
   | { type: "conversation"; data: Conversation }
   | { type: "conversation_deleted"; id: string }
   | { type: "opportunity"; data: OpportunityBrief }
-  | { type: "brand_profile"; data: BrandProfile };
+  | { type: "brand_profile"; data: BrandProfile }
   | { type: "product_blueprint"; data: ProductBlueprint }
   | { type: "listing_pack"; data: ListingPack };
