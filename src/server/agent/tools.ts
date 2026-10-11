@@ -162,7 +162,19 @@ export const TOOLS: ToolDef[] = [
     }, ["mission_id"]),
     precheck: async (a, ctx) => {
       if (!["Chief of Staff", "Operator"].includes(ctx.dot.name)) return "Only Chief of Staff and Operator may update missions.";
-      return repo.getSparkForgeMission(s(a.mission_id)) ? null : "Mission not found.";
+      const current = repo.getSparkForgeMission(s(a.mission_id));
+      if (!current) return "Mission not found.";
+      if (s(a.status) === "completed") {
+        const criteria = Array.isArray(a.acceptance_criteria) ? a.acceptance_criteria.map(s) : current.acceptanceCriteria;
+        const artifacts = Array.isArray(a.artifact_refs) ? a.artifact_refs.map(s) : current.artifactRefs;
+        const decisions = Array.isArray(a.decision_log) ? a.decision_log.map(s) : current.decisionLog;
+        if (!criteria.length) return "Cannot complete this mission until measurable acceptance criteria are recorded.";
+        if (!artifacts.length) return "Cannot complete this mission until at least one verifiable artifact reference is recorded.";
+        if (!decisions.some((entry) => /acceptance criteria.{0,30}(verified|met)|verified.{0,30}acceptance criteria|criteria.{0,30}verified/i.test(entry))) {
+          return "Before completing this mission, add a decision_log entry explicitly recording that the acceptance criteria were verified and citing the evidence reviewed.";
+        }
+      }
+      return null;
     },
     execute: async (a) => {
       const patch: Partial<Omit<SparkForgeMission, "id" | "dotId" | "createdAt" | "updatedAt">> = {};
