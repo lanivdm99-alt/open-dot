@@ -173,7 +173,7 @@ export default function Home() {
           </div>
         </section>
 
-        {missions.length > 0 && (
+        {dots.find((d) => d.name === "Chief of Staff") && (
           <section className="mt-6">
             <div className="mb-3 flex items-end justify-between">
               <div>
@@ -182,33 +182,45 @@ export default function Home() {
               </div>
               <span className="font-mono text-[10px] tracking-wider text-foreground/35 uppercase">Tracked commitments</span>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {missions.filter((m) => m.status !== "completed" && m.status !== "cancelled").slice(0, 6).map((mission) => (
-                <Link
-                  key={mission.id}
-                  href={`/dots/${mission.ownerDotId ?? dots.find((d) => d.name === "Chief of Staff")?.id ?? ""}`}
-                  className="surface group p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[15px] font-medium">{mission.title}</div>
-                      <div className="mt-1 line-clamp-2 text-body-sm text-foreground/50">{mission.goal}</div>
+            {missions.filter((m) => m.status !== "completed" && m.status !== "cancelled").length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {missions.filter((m) => m.status !== "completed" && m.status !== "cancelled").slice(0, 6).map((mission) => (
+                  <Link
+                    key={mission.id}
+                    href={`/dots/${mission.ownerDotId ?? dots.find((d) => d.name === "Chief of Staff")?.id ?? ""}`}
+                    className="surface group p-4 transition-[border-color,box-shadow] hover:border-black/15 hover:shadow-elevated"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[15px] font-medium">{mission.title}</div>
+                        <div className="mt-1 line-clamp-2 text-body-sm text-foreground/50">{mission.goal}</div>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-1 font-mono text-[10px] tracking-wider uppercase ${mission.status === "blocked" ? "bg-warning/10 text-warning" : mission.priority === "urgent" || mission.priority === "high" ? "bg-brand/10 text-brand-readable" : "bg-black/[0.05] text-foreground/45"}`}>
+                        {mission.status === "blocked" ? "Blocked" : mission.priority}
+                      </span>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-1 font-mono text-[10px] tracking-wider uppercase ${mission.status === "blocked" ? "bg-warning/10 text-warning" : mission.priority === "urgent" || mission.priority === "high" ? "bg-brand/10 text-brand-readable" : "bg-black/[0.05] text-foreground/45"}`}>
-                      {mission.status === "blocked" ? "Blocked" : mission.priority}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] tracking-wider text-foreground/40 uppercase">
-                    <span>{mission.status}</span>
-                    <span>·</span>
-                    <span>{dots.find((d) => d.id === mission.ownerDotId)?.name ?? "Unassigned"}</span>
-                    {mission.dueAt ? <><span>·</span><span>Due {new Date(mission.dueAt).toLocaleDateString()}</span></> : null}
-                  </div>
-                  {mission.nextAction ? <p className="mt-3 text-body-sm text-foreground/65"><span className="font-medium">Next:</span> {mission.nextAction}</p> : null}
-                  {mission.risks.length > 0 ? <p className="mt-2 line-clamp-1 text-body-sm text-warning">Risk: {mission.risks[0]}</p> : null}
+                    <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] tracking-wider text-foreground/40 uppercase">
+                      <span>{mission.status}</span>
+                      <span>·</span>
+                      <span>{dots.find((d) => d.id === mission.ownerDotId)?.name ?? "Unassigned"}</span>
+                      {mission.dueAt ? <><span>·</span><span>Due {new Date(mission.dueAt).toLocaleDateString()}</span></> : null}
+                    </div>
+                    {mission.nextAction ? <p className="mt-3 text-body-sm text-foreground/65"><span className="font-medium">Next:</span> {mission.nextAction}</p> : null}
+                    {mission.risks.length > 0 ? <p className="mt-2 line-clamp-1 text-body-sm text-warning">Risk: {mission.risks[0]}</p> : null}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="surface flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-[15px] font-medium">Your operating board is ready.</div>
+                  <p className="mt-1 max-w-[520px] text-body-sm text-foreground/55">Give Chief of Staff a business outcome to create a tracked mission with an owner, acceptance criteria, risks and a next action.</p>
+                </div>
+                <Link href={`/dots/${dots.find((d) => d.name === "Chief of Staff")!.id}`} className="btn-brand inline-flex h-10 items-center justify-center px-4">
+                  Plan first mission <ArrowUpRight size={14} className="ml-2" />
                 </Link>
-              ))}
-            </div>
+              </div>
+            )}
           </section>
         )}
 
