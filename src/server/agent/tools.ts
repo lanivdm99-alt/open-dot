@@ -96,7 +96,15 @@ export const TOOLS: ToolDef[] = [
     description: "List persistent SparkForge missions, ordered by priority. Use this before planning new work to avoid losing track of active, blocked or completed commitments.",
     parameters: obj({ status: { type: ["string", "null"], enum: ["planned", "active", "blocked", "completed", "cancelled", null], description: "Optional mission status filter" } }, ["status"]),
     precheck: async (_a, ctx) => ["Chief of Staff", "Operator"].includes(ctx.dot.name) ? null : "Only Chief of Staff and Operator may access the mission board.",
-    execute: async (a) => JSON.stringify(repo.listSparkForgeMissions(s(a.status) || undefined), null, 2),
+    execute: async (a) => {
+      const status = s(a.status);
+      const validStatuses: SparkForgeMission["status"][] = ["planned", "active", "blocked", "completed", "cancelled"];
+      return JSON.stringify(
+        repo.listSparkForgeMissions(validStatuses.includes(status as SparkForgeMission["status"]) ? status as SparkForgeMission["status"] : undefined),
+        null,
+        2,
+      );
+    },
   },
   {
     name: "create_sparkforge_mission",
