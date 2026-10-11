@@ -48,7 +48,8 @@ Use this checklist for every vertical slice. Run with a non-sensitive niche and 
 - Filter the mission board by each supported status and verify the returned missions match the filter.
 - Confirm an unrecognized status is ignored by the list filter rather than treated as a valid database status.
 - Confirm only Chief of Staff and Operator can use mission-management tools.
-- Do not mark a mission completed until its acceptance criteria and referenced artifacts have been checked.
+- Confirm a request to complete a mission is rejected if it lacks acceptance criteria, artifact references, or a decision-log entry recording verification.
+- Confirm a valid completion update is accepted only when measurable criteria, artifact references and an explicit verification record are present.
 - Verify a missing mission id produces a clear “Mission not found” result and does not mutate another mission.
 
 ### 6. Safety and recovery
