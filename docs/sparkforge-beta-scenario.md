@@ -39,7 +39,17 @@ Use this checklist for every vertical slice. Run with a non-sensitive niche and 
 - Confirm AI/licensing disclosures are flagged where relevant.
 - Confirm `save_listing_pack` persists the draft and status is not `published`.
 
-### 5. Safety and recovery
+### 5. Mission Control — persistence and accountability
+- Ask Chief of Staff to create a mission with a clear outcome, owner, priority, acceptance criteria and next action.
+- Confirm the mission appears on Mission Control after the page refreshes and retains its identity and fields.
+- Update its owner, due date, status, risks, decision log and artifact references; confirm each change is persisted.
+- Filter the mission board by each supported status and verify the returned missions match the filter.
+- Confirm an unrecognized status is ignored by the list filter rather than treated as a valid database status.
+- Confirm only Chief of Staff and Operator can use mission-management tools.
+- Do not mark a mission completed until its acceptance criteria and referenced artifacts have been checked.
+- Verify a missing mission id produces a clear “Mission not found” result and does not mutate another mission.
+
+### 6. Safety and recovery
 - Verify no marketplace listing is published, no post/email is sent, no purchase is made, and no credentials/settings are changed without an explicit approval gate.
 - Interrupt a run and resume it; verify the saved artifacts remain available.
 - Submit a deliberately vague niche; verify the agent asks a clarifying question or labels assumptions rather than inventing evidence.
