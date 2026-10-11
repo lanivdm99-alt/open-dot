@@ -73,6 +73,16 @@ Expected:
 - safe auto-actions
 - review-required actions
 
+### B7 — Chief of Staff and Mission Control
+Scenario: run an Opportunity Lab request through Scout and Forge.
+Expected:
+- a persistent mission is created with explicit acceptance criteria;
+- Scout saves a source-grounded opportunity brief and reports its artifact id;
+- Forge saves a linked product blueprint and reports its artifact id;
+- Chief of Staff records artifacts, risks and next action in the mission;
+- completion is blocked without criteria, artifacts and a verification decision-log entry;
+- no external publication or spending occurs.
+
 ## Human approval
 The beta must never silently publish, send messages, spend money, delete assets, change credentials, or bypass platform approvals.
 
