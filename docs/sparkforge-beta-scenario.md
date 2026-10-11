@@ -14,6 +14,8 @@ Use this checklist for every vertical slice. Run with a non-sensitive niche and 
 
 ### 1. Scout — research
 - Enter a concrete niche in SparkForge Opportunity Lab (for example, printable onboarding kits for freelance designers).
+- Confirm a persistent mission is created automatically with the Scout owner, acceptance criteria and the opportunity brief id.
+- Confirm Scout notifies Chief of Staff after saving the brief and that the mission remains active while Forge is still working.
 - Confirm Scout states the exact query and distinguishes observed evidence from inference.
 - Confirm competitor entries include real URLs and observable prices where available.
 - Confirm sources and observation timestamps are included where available.
