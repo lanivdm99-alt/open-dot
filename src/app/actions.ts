@@ -65,9 +65,30 @@ export async function startSparkForgeOpportunity(query: string): Promise<string 
     status: "researching",
   });
 
+  const trackedMission = repo.createSparkForgeMission({
+    dotId: scout.id,
+    title: `Validate opportunity: ${niche.slice(0, 72)}`,
+    goal: `Use current evidence to validate "${niche}" and save a product blueprint grounded in the resulting opportunity brief.`,
+    status: "active",
+    priority: "normal",
+    ownerDotId: scout.id,
+    dueAt: null,
+    acceptanceCriteria: [
+      "A structured opportunity brief is saved with observed evidence, sources, competitor examples and a reasoned score.",
+      "A product blueprint is saved and linked to the validated opportunity brief.",
+      "Any unsupported assumptions, missing evidence and next actions are recorded.",
+    ],
+    dependencies: [],
+    artifactRefs: [opportunity.id],
+    risks: ["Marketplace visibility may be incomplete; do not infer private sales or search-volume data."],
+    decisionLog: [],
+    nextAction: "Scout gathers current evidence and saves the opportunity brief.",
+  });
+
   const conv = repo.createConversation(scout.id);
   const mission = `SPARKFORGE OPPORTUNITY MISSION
 
+Mission ID: ${trackedMission.id}
 Opportunity ID: ${opportunity.id}
 Research target: ${niche}
 
@@ -85,7 +106,7 @@ Deliverable contract:
 9. One concrete digital product/bundle recommendation.
 10. Sources and timestamps. Clearly label observations vs inference. Never invent sales, search volume, rankings or customer data.
 
-When the research is complete, call save_opportunity_brief with Opportunity ID ${opportunity.id}. The saved brief is the source of truth for the next agents. Only after it is saved should you hand the completed opportunity brief to Forge using the message_dot tool. Tell Forge to turn the validated opportunity into a concrete product specification. Do not publish, purchase, or make external changes. Return the final opportunity brief in this conversation as well.`;
+When the research is complete, call save_opportunity_brief with Opportunity ID ${opportunity.id}. The saved brief is the source of truth for the next agents. Then use message_dot to notify Chief of Staff with Mission ID ${trackedMission.id}, Opportunity ID ${opportunity.id}, the saved artifact id and a truthful progress summary. Ask Chief of Staff to update the mission's artifact refs, risks and next action, keeping it active until the product blueprint is saved. Only after the brief is saved should you hand the completed opportunity brief to Forge using message_dot. Include Mission ID ${trackedMission.id}, Opportunity ID ${opportunity.id}, and the evidence summary; ask Forge to read the saved brief, create one focused product blueprint, and then notify Chief of Staff with the blueprint id and any blockers so the mission can be updated against its acceptance criteria. Do not publish, purchase, or make external changes. Return the final opportunity brief in this conversation as well.`;
 
   runtime.sendMessage(scout.id, mission, [], conv.id);
   void autoTitle(conv.id, `Opportunity · ${niche}`);
