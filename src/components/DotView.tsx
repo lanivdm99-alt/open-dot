@@ -39,7 +39,7 @@ export default function DotView({ dotId, tab, conversation }: { dotId: string; t
         <MenuButton />
         {/* Dot pill */}
         <Link href={base} className="flex min-w-0 items-center gap-2 rounded-full bg-background py-1 pr-3.5 pl-1 transition-colors hover:bg-black/[0.06]">
-          <DotOrb look={dot.look} status={dot.status} size={26} />
+          <DotOrb look={dot.look} name={dot.name} status={dot.status} size={26} />
           <span className="truncate text-[14px] font-medium">{dot.name}</span>
           {dot.status !== "idle" && (
             <span className="flex items-center gap-1.5 text-[12px] text-foreground/50">

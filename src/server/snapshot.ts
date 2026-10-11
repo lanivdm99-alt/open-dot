@@ -44,5 +44,10 @@ export function snapshot(): Snapshot {
     apps: apps(),
     channels: repo.listChannels(),
     conversations: repo.listConversations(),
+    opportunities: repo.listOpportunityBriefs(),
+    productBlueprints: repo.listProductBlueprints(),
+    listingPacks: repo.listListingPacks(),
+    brandProfiles: repo.listBrandProfiles(),
+    missions: repo.listSparkForgeMissions(),
   };
 }

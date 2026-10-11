@@ -13,12 +13,18 @@
   --popover: #fafafa;
   --foreground: #0f0f0f;
 
-  --brand: #51a2ff;
-  --brand-hover: #3590f5;
-  --brand-active: #1f7ee8;
-  --brand-readable: #0007cd;
+  /* SparkForge brand: electric violet + cyan + magenta, balanced for a premium light UI. */
+  --brand: #7657ff;
+  --brand-hover: #6345ed;
+  --brand-active: #5336d4;
+  --brand-readable: #5a3bd0;
 
-  --highlight: #d4ff4a;
+  --spark-cyan: #28d7ff;
+  --spark-pink: #ff4fb3;
+  --spark-gold: #ffb84d;
+  --spark-ink: #0b1020;
+
+  --highlight: #d9ff66;
   --highlight-foreground: #0f0f0f;
 
   --border: oklch(0.922 0 0);
@@ -57,6 +63,10 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-active: var(--brand-active);
   --color-brand-readable: var(--brand-readable);
+  --color-spark-cyan: var(--spark-cyan);
+  --color-spark-pink: var(--spark-pink);
+  --color-spark-gold: var(--spark-gold);
+  --color-spark-ink: var(--spark-ink);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-border: var(--border);
@@ -202,4 +212,19 @@
 }
 .dot-prose :where(a) {
   @apply no-underline hover:underline;
+}
+
+@layer components {
+  .sparkforge-gradient {
+    background: linear-gradient(110deg, var(--brand), var(--spark-cyan) 52%, var(--spark-pink));
+  }
+  .sparkforge-text {
+    background: linear-gradient(110deg, var(--brand), #3dbff0 52%, var(--spark-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sparkforge-glow {
+    box-shadow: 0 18px 55px -28px rgba(118, 87, 255, .42);
+  }
 }

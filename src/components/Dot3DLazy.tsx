@@ -3,11 +3,14 @@
 import { Component, useSyncExternalStore, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import DotOrb from "./DotOrb";
+import SparkForgeFluffy from "./SparkForgeFluffy";
 import type { DotStatus, Look } from "@/lib/types";
 
-type Props = { look: Look; status?: DotStatus; size?: number; stage?: boolean; className?: string };
+type Props = { look: Look; name?: string; status?: DotStatus; size?: number; stage?: boolean; className?: string };
 
-// WebGL only on the client. The CSS orb stands in when WebGL is unavailable or three.js fails.
+const SPARKFORGE_NAMES = new Set(["Scout", "Forge", "Canvas", "Listing", "Pulse", "Audience", "Operator", "Browser"]);
+
+// WebGL only on the client. SparkForge agents use their dedicated Fluffy characters.
 const Dot3D = dynamic(() => import("./Dot3D"), { ssr: false, loading: () => null });
 
 let webgl: boolean | null = null;
@@ -36,19 +39,28 @@ class Fallback extends Component<{ fallback: ReactNode; children: ReactNode }, {
   }
 }
 
-export default function Dot3DLazy(props: Props) {
-  const size = props.size ?? 160;
+export default function Dot3DLazy({ look, name, status, size = 160, stage, className }: Props) {
   const canRender3D = useSyncExternalStore(noop, detectWebGL, () => false);
+  const isSparkForge = !!name && SPARKFORGE_NAMES.has(name);
+
+  if (isSparkForge) {
+    return (
+      <div className={`relative shrink-0 ${className ?? ""}`} style={{ width: size, height: size }}>
+        <SparkForgeFluffy name={name} status={status} size={size} />
+      </div>
+    );
+  }
+
   const orb = (
     <div className="absolute inset-0 flex items-center justify-center">
-      <DotOrb look={props.look} status={props.status} size={size * 0.72} />
+      <DotOrb look={look} name={name} status={status} size={size * 0.72} />
     </div>
   );
   return (
-    <div className={`relative shrink-0 ${props.className ?? ""}`} style={{ width: size, height: size }}>
+    <div className={`relative shrink-0 ${className ?? ""}`} style={{ width: size, height: size }}>
       {canRender3D ? (
         <Fallback fallback={orb}>
-          <Dot3D {...props} className="absolute inset-0" />
+          <Dot3D look={look} status={status} size={size} stage={stage} className="absolute inset-0" />
         </Fallback>
       ) : (
         orb

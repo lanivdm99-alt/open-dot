@@ -100,7 +100,7 @@ export default function Chat({ dot, conversation }: { dot: Dot; conversation?: s
               ))}
               {workingHere && (
                 <div className="flex items-center gap-3">
-                  <DotOrb look={dot.look} status="working" size={24} />
+                  <DotOrb look={dot.look} name={dot.name} status="working" size={24} />
                   <span className="shimmer-text text-body-sm">{dot.activity ?? "Working"}…</span>
                 </div>
               )}
@@ -132,7 +132,7 @@ function Welcome({ dot, onPick }: { dot: Dot; onPick: (text: string) => void }) 
   return (
     <div className="flex flex-col items-center pt-12 text-center">
       <div className="dot-grid rounded-full">
-        <Dot3DLazy look={dot.look} status={dot.status} size={148} />
+        <Dot3DLazy look={dot.look} name={dot.name} status={dot.status} size={148} />
       </div>
       <div className="eyebrow mt-4 text-brand-readable/80">Your dot</div>
       <h1 className="text-h1 mt-2">Hi, I&apos;m {dot.name}</h1>
@@ -402,7 +402,7 @@ export function MessageRow({ m, dot, showName = false }: { m: Message; dot: Dot;
     <div className={`flex gap-2.5 ${showName ? "" : "pr-6 sm:pr-12"}`}>
       {showName && (
         <div className="pt-0.5">
-          <DotOrb look={dot.look} status="idle" size={24} />
+          <DotOrb look={dot.look} name={dot.name} status="idle" size={24} />
         </div>
       )}
       <div className="min-w-0 max-w-full rounded-[18px] bg-background px-4 py-2.5">

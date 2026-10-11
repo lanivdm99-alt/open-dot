@@ -48,6 +48,7 @@ export function normalizeLook(raw: Partial<Record<keyof Look, unknown>> | null |
     material: oneOf(MATERIALS, r.material, legacyMaterial[String(r.material)] ?? "soft"),
     eyes: oneOf(EYES, r.eyes, legacyEyes[String(r.eyes)] ?? "classic"),
     accessory: oneOf(ACCESSORIES, r.accessory, "none"),
+    fluffyRole: typeof r.fluffyRole === "string" ? r.fluffyRole : undefined,
   };
 }
 

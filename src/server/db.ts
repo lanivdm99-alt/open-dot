@@ -39,6 +39,48 @@ CREATE TABLE IF NOT EXISTS conversations (
   thread TEXT, pending TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS conversations_dot ON conversations(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS opportunity_briefs (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, query TEXT NOT NULL, niche TEXT NOT NULL DEFAULT '',
+  target_buyer TEXT NOT NULL DEFAULT '', demand_signals TEXT NOT NULL DEFAULT '[]', competitors TEXT NOT NULL DEFAULT '[]',
+  buyer_language TEXT NOT NULL DEFAULT '[]', gaps TEXT NOT NULL DEFAULT '[]', pricing TEXT NOT NULL DEFAULT '',
+  execution_difficulty TEXT NOT NULL DEFAULT '', score INTEGER NOT NULL DEFAULT 0, recommendation TEXT NOT NULL DEFAULT '',
+  sources TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'researching',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS opportunity_briefs_dot ON opportunity_briefs(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS product_blueprints (
+  id TEXT PRIMARY KEY, opportunity_id TEXT NOT NULL, dot_id TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
+  promise TEXT NOT NULL DEFAULT '', format TEXT NOT NULL DEFAULT '', contents TEXT NOT NULL DEFAULT '[]',
+  variants TEXT NOT NULL DEFAULT '[]', price TEXT NOT NULL DEFAULT '', production_requirements TEXT NOT NULL DEFAULT '[]',
+  creative_brief TEXT NOT NULL DEFAULT '', listing_angle TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS product_blueprints_opportunity ON product_blueprints(opportunity_id, updated_at);
+CREATE TABLE IF NOT EXISTS listing_packs (
+  id TEXT PRIMARY KEY, product_blueprint_id TEXT NOT NULL, dot_id TEXT NOT NULL,
+  platform TEXT NOT NULL DEFAULT 'generic', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '[]', faq TEXT NOT NULL DEFAULT '[]', image_plan TEXT NOT NULL DEFAULT '[]',
+  disclosure_notes TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'draft',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS listing_packs_product ON listing_packs(product_blueprint_id, updated_at);
+CREATE TABLE IF NOT EXISTS brand_profiles (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', tagline TEXT NOT NULL DEFAULT '',
+  audience TEXT NOT NULL DEFAULT '', positioning TEXT NOT NULL DEFAULT '', voice TEXT NOT NULL DEFAULT '[]',
+  colors TEXT NOT NULL DEFAULT '[]', fonts TEXT NOT NULL DEFAULT '{}', visual_direction TEXT NOT NULL DEFAULT '',
+  imagery_rules TEXT NOT NULL DEFAULT '[]', avoid TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'draft',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS brand_profiles_dot ON brand_profiles(dot_id, updated_at);
+CREATE TABLE IF NOT EXISTS sparkforge_missions (
+  id TEXT PRIMARY KEY, dot_id TEXT NOT NULL, title TEXT NOT NULL, goal TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'planned', priority TEXT NOT NULL DEFAULT 'normal', owner_dot_id TEXT,
+  due_at INTEGER, acceptance_criteria TEXT NOT NULL DEFAULT '[]', dependencies TEXT NOT NULL DEFAULT '[]',
+  artifact_refs TEXT NOT NULL DEFAULT '[]', risks TEXT NOT NULL DEFAULT '[]', decision_log TEXT NOT NULL DEFAULT '[]',
+  next_action TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sparkforge_missions_status ON sparkforge_missions(status, priority, updated_at);
+CREATE INDEX IF NOT EXISTS sparkforge_missions_owner ON sparkforge_missions(owner_dot_id, status);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, site TEXT NOT NULL, username TEXT NOT NULL, secret TEXT NOT NULL, created_at INTEGER NOT NULL);
 `;

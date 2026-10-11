@@ -48,7 +48,7 @@ export default function ChannelView({ channelId }: { channelId: string }) {
         <div className="flex -space-x-1.5">
           {members.map((d) => (
             <span key={d.id} className="relative rounded-full bg-card" title={`${d.name}${d.id === channel.leadId ? " (lead)" : ""}`}>
-              <DotOrb look={d.look} status={d.status} size={30} />
+              <DotOrb look={d.look} name={d.name} status={d.status} size={30} />
               {d.id === channel.leadId && <Crown className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 fill-highlight text-foreground" strokeWidth={1.5} />}
             </span>
           ))}
@@ -79,7 +79,7 @@ export default function ChannelView({ channelId }: { channelId: string }) {
             })}
             {working.map((d) => (
               <div key={d.id} className="flex items-center gap-3">
-                <DotOrb look={d.look} status="working" size={24} />
+                <DotOrb look={d.look} name={d.name} status="working" size={24} />
                 <span className="shimmer-text text-body-sm">
                   {d.name} · {d.activity ?? "Working"}…
                 </span>

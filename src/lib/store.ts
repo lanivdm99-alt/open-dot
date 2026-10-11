@@ -23,6 +23,7 @@ const EMPTY: State = {
   apps: [],
   channels: [],
   conversations: [],
+  opportunities: [], productBlueprints: [], listingPacks: [], brandProfiles: [], missions: [],
   loaded: false, connected: false, screens: {}, urls: {}, lastRead: {}, toasts: [],
 };
 
@@ -138,6 +139,16 @@ function apply(ev: ServerEvent) {
       return set({ conversations: upsert(state.conversations, ev.data) });
     case "conversation_deleted":
       return set({ conversations: without(state.conversations, ev.id), messages: state.messages.filter((m) => m.conversationId !== ev.id) });
+    case "opportunity":
+      return set({ opportunities: upsert(state.opportunities, ev.data) });
+    case "product_blueprint":
+      return set({ productBlueprints: upsert(state.productBlueprints, ev.data) });
+    case "listing_pack":
+      return set({ listingPacks: upsert(state.listingPacks, ev.data) });
+    case "brand_profile":
+      return set({ brandProfiles: upsert(state.brandProfiles, ev.data) });
+    case "sparkforge_mission":
+      return set({ missions: upsert(state.missions, ev.data) });
     case "channel_deleted":
       return set({ channels: without(state.channels, ev.id), messages: state.messages.filter((m) => m.channelId !== ev.id) });
   }

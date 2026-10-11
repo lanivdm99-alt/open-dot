@@ -1,5 +1,5 @@
 {
-  "name": "open-dot",
+  "name": "sparkforge",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -47,8 +47,8 @@
   },
   "packageManager": "pnpm@12.5.1",
   "build": {
-    "appId": "dev.composio.opendot",
-    "productName": "Open Dot",
+    "appId": "ai.sparkforge.creatoros",
+    "productName": "SparkForge",
     "electronVersion": "44.4.5",
     "directories": {
       "app": "electron",
@@ -73,7 +73,7 @@
       ],
       "icon": "build/icon.png",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Open Dot uses the microphone for voice mode."
+        "NSMicrophoneUsageDescription": "SparkForge uses the microphone for voice mode."
       },
       "identity": "-",
       "hardenedRuntime": false
