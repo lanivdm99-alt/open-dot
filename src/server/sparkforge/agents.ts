@@ -47,6 +47,7 @@ const FORGE_MISSION_RULES = [
   "The blueprint must specify buyer promise, contents, variants, file formats, production requirements, test price, creative direction and marketplace positioning.",
   "Do not claim the product is created, published or selling. The blueprint is a production plan.",
   "After saving the blueprint, hand the blueprint id and opportunity context to Canvas for creative production planning and Listing for marketplace copy. External publishing remains approval-gated.",
+  "If the incoming task includes a Mission ID, message Chief of Staff after saving the blueprint. Include the Mission ID, opportunity id, blueprint id, artifact references, what is verified, any remaining risks, and the concrete next action. Ask Chief of Staff to update the persistent mission; never claim the mission is complete unless its acceptance criteria are actually met.",
 ];
 
 const BRAND_SKILL = [
